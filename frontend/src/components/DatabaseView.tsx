@@ -44,11 +44,30 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
         const data = await res.json();
         setTableRows(data.rows || []);
       } else {
-        // Fallback mock/simulated rows for instant jury showcase if table endpoint gives empty
-        setTableRows([]);
+        // Fallback to /api/database/records
+        const fallbackRes = await fetch(`${apiBase}/api/database/records`);
+        if (fallbackRes.ok) {
+          const recData = await fallbackRes.json();
+          const rows = recData.tables?.[table] || [];
+          setTableRows(rows);
+        } else {
+          setTableRows([]);
+        }
       }
     } catch (e) {
-      console.warn('Failed to query DB table', e);
+      // Fallback try records endpoint
+      try {
+        const fallbackRes = await fetch(`${apiBase}/api/database/records`);
+        if (fallbackRes.ok) {
+          const recData = await fallbackRes.json();
+          const rows = recData.tables?.[table] || [];
+          setTableRows(rows);
+        } else {
+          setTableRows([]);
+        }
+      } catch (err) {
+        setTableRows([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -72,15 +91,15 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
       const res = await fetch(`${apiBase}/api/database/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ databaseUrl: connectionUri })
+        body: JSON.stringify({ connectionUri, databaseUrl: connectionUri })
       });
       const data = await res.json();
-      if (res.ok && data.connected) {
-        setConnectionMsg({ type: 'success', text: `Successfully connected to PostgreSQL (${data.database || 'Live Pool'}). Tables verified!` });
+      if (res.ok && (data.connected || data.success)) {
+        setConnectionMsg({ type: 'success', text: `Successfully established connection to PostgreSQL! ${data.message || ''}` });
         fetchDbStatus();
         fetchTableData(selectedTable);
       } else {
-        setConnectionMsg({ type: 'error', text: data.error || 'Failed to connect to PostgreSQL instance.' });
+        setConnectionMsg({ type: 'error', text: data.message || data.error || 'Failed to connect to PostgreSQL instance.' });
       }
     } catch (err: any) {
       setConnectionMsg({ type: 'error', text: err.message || 'Network error reaching database connection endpoint.' });

@@ -226,13 +226,32 @@ app.get('/api/database/records', async (req: Request, res: Response) => {
   return res.json(records);
 });
 
+app.get('/api/database/query', async (req: Request, res: Response) => {
+  const table = (req.query.table as string) || 'orders';
+  const limit = Math.min(parseInt(req.query.limit as string || '50', 10), 100);
+  const records = await persistence.getDatabaseRecords();
+  const rows = (records.tables as any)?.[table] || [];
+  return res.json({
+    table,
+    source: records.source,
+    uri: records.uri,
+    rowCount: rows.length,
+    rows: rows.slice(0, limit),
+  });
+});
+
 app.post('/api/database/connect', async (req: Request, res: Response) => {
-  const { connectionUri } = req.body;
+  const connectionUri = req.body.connectionUri || req.body.databaseUrl;
   if (!connectionUri) {
-    return res.status(400).json({ success: false, message: 'Missing connectionUri' });
+    return res.status(400).json({ success: false, connected: false, message: 'Missing connectionUri or databaseUrl' });
   }
   const result = await persistence.initPostgres(connectionUri);
-  return res.json(result);
+  return res.json({
+    success: result.success,
+    connected: result.success,
+    database: persistence.getStatus().connectionUri,
+    message: result.message,
+  });
 });
 
 // 9. Admin Resume Trading
@@ -285,6 +304,8 @@ app.post('/api/admin/scenario', (req: Request, res: Response) => {
       10000,
       50
     );
+    if (sellRes.success) persistence.enqueue(sellRes.sequenceId, 'ORDER_ACCEPTED', sellRes);
+
     // 2. Incoming buy @ Rs 100.00
     const buyRes = engine.submitOrder(
       `BUY-${Date.now()}`,
@@ -295,6 +316,8 @@ app.post('/api/admin/scenario', (req: Request, res: Response) => {
       10000,
       50
     );
+    if (buyRes.success) persistence.enqueue(buyRes.sequenceId, 'ORDER_ACCEPTED', buyRes);
+
     broadcastFullState();
     return res.json({ success: true, scenario: 'normal', sellRes, buyRes });
   }
@@ -310,6 +333,8 @@ app.post('/api/admin/scenario', (req: Request, res: Response) => {
       10000,
       100
     );
+    if (sellRes.success) persistence.enqueue(sellRes.sequenceId, 'ORDER_ACCEPTED', sellRes);
+
     // Incoming buy 40 shares @ Rs 100.00 -> partial fill (60 resting left)
     const buyRes = engine.submitOrder(
       `BUY-PARTIAL-${Date.now()}`,
@@ -320,6 +345,8 @@ app.post('/api/admin/scenario', (req: Request, res: Response) => {
       10000,
       40
     );
+    if (buyRes.success) persistence.enqueue(buyRes.sequenceId, 'ORDER_ACCEPTED', buyRes);
+
     broadcastFullState();
     return res.json({ success: true, scenario: 'partial_fill', sellRes, buyRes });
   }
@@ -416,10 +443,16 @@ function seedInitialBook() {
   ];
 
   seedBids.forEach((b, idx) => {
-    engine.submitOrder(`INIT-BID-${idx}`, `REQ-INIT-B-${idx}`, 'SEED_MM_BID', 'DEMO', 'BUY', b.p, b.q);
+    const res = engine.submitOrder(`INIT-BID-${idx}`, `REQ-INIT-B-${idx}`, 'SEED_MM_BID', 'DEMO', 'BUY', b.p, b.q);
+    if (res.success) {
+      persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
+    }
   });
   seedAsks.forEach((a, idx) => {
-    engine.submitOrder(`INIT-ASK-${idx}`, `REQ-INIT-A-${idx}`, 'SEED_MM_ASK', 'DEMO', 'SELL', a.p, a.q);
+    const res = engine.submitOrder(`INIT-ASK-${idx}`, `REQ-INIT-A-${idx}`, 'SEED_MM_ASK', 'DEMO', 'SELL', a.p, a.q);
+    if (res.success) {
+      persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
+    }
   });
 }
 

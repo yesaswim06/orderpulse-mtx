@@ -11,7 +11,9 @@ import {
   Layers,
   FileCode2,
   TrendingUp,
-  Wallet
+  Wallet,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { BreakerStatus, EngineMetrics, OrderBookSnapshot } from '../types';
 
@@ -25,6 +27,8 @@ interface NavbarProps {
   backendTarget: 'railway' | 'local';
   onToggleTarget: () => void;
   onOpenAdmin: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -37,6 +41,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   backendTarget,
   onToggleTarget,
   onOpenAdmin,
+  theme,
+  onToggleTheme,
 }) => {
   const state = breaker?.state || 'RUNNING';
   const midPrice = snapshot?.bestBidTicks && snapshot?.bestAskTicks
@@ -173,6 +179,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Wallet className="w-3 h-3 text-slate-400" />
             <span>₹1,000,000</span>
           </div>
+
+          {/* Dark / Light Theme Switcher */}
+          <button
+            onClick={onToggleTheme}
+            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer flex items-center justify-center"
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 text-amber-300" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-sky-500" />
+            )}
+          </button>
 
           {/* Operator Settings */}
           <button

@@ -260,8 +260,25 @@ export const App: React.FC = () => {
     return { success: true };
   };
 
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('mtx_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('theme-light');
+    } else {
+      document.body.classList.remove('theme-light');
+    }
+    localStorage.setItem('mtx_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   return (
-    <div className="min-h-screen bg-[#080d1a] text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-white">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060913] text-slate-100' : 'bg-[#f1f5f9] text-slate-900'} flex flex-col font-sans selection:bg-sky-500/30 selection:text-white transition-colors duration-200`}>
       {/* Premier Frosted Glass Exchange Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -273,6 +290,8 @@ export const App: React.FC = () => {
         backendTarget={backendTarget}
         onToggleTarget={() => setBackendTarget(prev => prev === 'railway' ? 'local' : 'railway')}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">
