@@ -9,7 +9,7 @@ interface DepthChartProps {
 export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
   if (!snapshot) {
     return (
-      <div className="bg-trading-card border border-trading-border rounded-xl p-4 flex items-center justify-center h-64 text-slate-500">
+      <div className="glass-panel rounded-2xl p-4 flex items-center justify-center h-64 text-slate-500">
         Waiting for depth data...
       </div>
     );
@@ -23,7 +23,6 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
     cumBid += b.totalQuantity;
     bidPoints.push([b.priceTicks / 100, cumBid]);
   }
-  // For depth charts, bids are plotted from lowest price to highest
   bidPoints.reverse();
 
   // Calculate cumulative ask depth (starting from lowest ask ascending)
@@ -45,30 +44,32 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
     },
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#111827',
-      borderColor: '#374151',
-      textStyle: { color: '#f3f4f6', fontSize: 11 },
+      backgroundColor: 'rgba(11, 17, 32, 0.85)',
+      borderColor: 'rgba(255, 255, 255, 0.15)',
+      borderWidth: 1,
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+      extraCssText: 'backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);',
       formatter: (params: any) => {
         if (!params || !params.length) return '';
         const item = params[0];
-        return `Price: ₹${item.value[0].toFixed(2)}<br/>Cumulative Volume: ${item.value[1].toLocaleString()} shares`;
+        return `Price: <strong>₹${item.value[0].toFixed(2)}</strong><br/>Cumulative Volume: <strong>${item.value[1].toLocaleString()} shares</strong>`;
       },
     },
     xAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#334155' } },
+      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
       axisLabel: {
         color: '#94a3b8',
         fontSize: 10,
         formatter: (val: number) => `₹${val.toFixed(1)}`,
       },
-      splitLine: { lineStyle: { color: '#1e293b' } },
+      splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
     },
     yAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#334155' } },
+      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
       axisLabel: { color: '#94a3b8', fontSize: 10 },
-      splitLine: { lineStyle: { color: '#1e293b' } },
+      splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
     },
     series: [
       {
@@ -82,8 +83,8 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(16, 185, 129, 0.45)' },
-              { offset: 1, color: 'rgba(16, 185, 129, 0.05)' }
+              { offset: 0, color: 'rgba(16, 185, 129, 0.5)' },
+              { offset: 1, color: 'rgba(16, 185, 129, 0.02)' }
             ]
           }
         },
@@ -100,8 +101,8 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(244, 63, 94, 0.45)' },
-              { offset: 1, color: 'rgba(244, 63, 94, 0.05)' }
+              { offset: 0, color: 'rgba(244, 63, 94, 0.5)' },
+              { offset: 1, color: 'rgba(244, 63, 94, 0.02)' }
             ]
           }
         },
@@ -111,17 +112,17 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
   };
 
   return (
-    <div className="bg-trading-card border border-trading-border rounded-xl p-4 shadow-lg flex flex-col">
+    <div className="glass-panel rounded-2xl p-4 shadow-xl flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-          Market Depth Chart (Apache ECharts)
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+          Market Depth Curve (Apache ECharts)
         </h3>
         <div className="flex items-center gap-3 text-[11px]">
-          <span className="flex items-center gap-1.5 text-emerald-400">
-            <span className="w-2.5 h-1 bg-emerald-500 inline-block rounded"></span> Bids
+          <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+            <span className="w-2.5 h-1 bg-emerald-500 inline-block rounded-full shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span> Cumulative Bids
           </span>
-          <span className="flex items-center gap-1.5 text-rose-400">
-            <span className="w-2.5 h-1 bg-rose-500 inline-block rounded"></span> Asks
+          <span className="flex items-center gap-1.5 text-rose-400 font-medium">
+            <span className="w-2.5 h-1 bg-rose-500 inline-block rounded-full shadow-[0_0_6px_rgba(244,63,94,0.8)]"></span> Cumulative Asks
           </span>
         </div>
       </div>

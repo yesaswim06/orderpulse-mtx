@@ -22,16 +22,20 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
   };
 
   return (
-    <div className="bg-trading-card border border-trading-border rounded-xl p-3 mb-4">
+    <div className="glass-panel rounded-2xl p-3.5 mb-4 shadow-lg">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-cyan-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            Interactive Jury Demos:
-          </span>
-          <span className="text-xs text-slate-500 hidden sm:inline">
-            Execute key scenarios with one click
-          </span>
+          <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-white">
+              Interactive Jury Demos:
+            </span>
+            <span className="text-xs text-slate-400 hidden sm:inline ml-2">
+              Execute key simulation scenarios with one click
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
@@ -39,9 +43,9 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('normal')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
           >
-            <Play className="w-3.5 h-3.5" />
+            <Play className="w-3.5 h-3.5 fill-emerald-400/40" />
             <span>1. Normal Match</span>
           </button>
 
@@ -49,7 +53,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('partial_fill')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/40 text-blue-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
           >
             <Layers className="w-3.5 h-3.5" />
             <span>2. Partial Fill</span>
@@ -59,7 +63,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('price_shock')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-rose-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
           >
             <Flame className="w-3.5 h-3.5 text-rose-400" />
             <span>3. Price Shock (Halt)</span>
@@ -69,7 +73,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('burst')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
             <span>4. 50-Order Burst</span>
@@ -79,7 +83,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('reset')}
             disabled={loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium transition-all cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-slate-400 hover:text-white text-xs font-medium backdrop-blur-md transition-all cursor-pointer"
             title="Clear and reset engine state"
           >
             <RotateCcw className="w-3.5 h-3.5" />

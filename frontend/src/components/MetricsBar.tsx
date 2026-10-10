@@ -10,91 +10,107 @@ export const MetricsBar: React.FC<MetricsBarProps> = ({ metrics }) => {
   if (!metrics) return null;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 mb-4">
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
       {/* Accepted Orders */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-emerald-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Accepted</span>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-medium text-slate-300">Accepted</span>
+          <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-white mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-white mt-2">
           {metrics.totalOrdersAccepted.toLocaleString()}
         </div>
       </div>
 
       {/* Trades Executed */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-cyan-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Trades</span>
-          <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-medium text-slate-300">Trades</span>
+          <div className="p-1 rounded-lg bg-cyan-500/10 text-cyan-400">
+            <TrendingUp className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-cyan-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-cyan-400 mt-2">
           {metrics.totalTradesExecuted.toLocaleString()}
         </div>
       </div>
 
       {/* Cancelled Orders */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-amber-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Cancelled</span>
-          <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-medium text-slate-300">Cancelled</span>
+          <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400">
+            <RotateCcw className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-amber-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-amber-400 mt-2">
           {metrics.totalOrdersCancelled.toLocaleString()}
         </div>
       </div>
 
       {/* Rejected Orders */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-rose-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Rejected</span>
-          <XCircle className="w-3.5 h-3.5 text-rose-400" />
+          <span className="font-medium text-slate-300">Rejected</span>
+          <div className="p-1 rounded-lg bg-rose-500/10 text-rose-400">
+            <XCircle className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-rose-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-rose-400 mt-2">
           {metrics.totalOrdersRejected.toLocaleString()}
         </div>
       </div>
 
       {/* Throughput */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-purple-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Throughput</span>
-          <Gauge className="w-3.5 h-3.5 text-purple-400" />
+          <span className="font-medium text-slate-300">Throughput</span>
+          <div className="p-1 rounded-lg bg-purple-500/10 text-purple-400">
+            <Gauge className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-purple-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-purple-400 mt-2">
           {metrics.ordersPerSecond.toLocaleString()}<span className="text-xs font-normal text-slate-400 ml-1">ops/s</span>
         </div>
       </div>
 
       {/* p50 Latency */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-emerald-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Latency p50</span>
-          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-medium text-slate-300">Latency p50</span>
+          <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <Zap className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-emerald-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-emerald-400 mt-2">
           {metrics.p50LatencyMicros.toFixed(1)}<span className="text-xs font-normal text-slate-400 ml-0.5">µs</span>
         </div>
       </div>
 
       {/* p99 Latency */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-amber-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Latency p99</span>
-          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-medium text-slate-300">Latency p99</span>
+          <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400">
+            <Zap className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-amber-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-amber-400 mt-2">
           {metrics.p99LatencyMicros.toFixed(1)}<span className="text-xs font-normal text-slate-400 ml-0.5">µs</span>
         </div>
       </div>
 
       {/* Breaker Trips */}
-      <div className="bg-trading-card border border-trading-border/80 rounded-xl p-2.5 flex flex-col justify-between">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-rose-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
-          <span>Halt Events</span>
-          <Clock className="w-3.5 h-3.5 text-rose-400" />
+          <span className="font-medium text-slate-300">Halt Events</span>
+          <div className="p-1 rounded-lg bg-rose-500/10 text-rose-400">
+            <Clock className="w-3.5 h-3.5" />
+          </div>
         </div>
-        <div className="text-lg font-bold font-mono-numbers text-rose-400 mt-1">
+        <div className="text-xl font-bold font-mono-numbers text-rose-400 mt-2">
           {metrics.totalBreakerTrips}
         </div>
       </div>
