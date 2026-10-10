@@ -150,13 +150,14 @@ export const OrdersPage: React.FC = () => {
                   <th className="py-3.5 px-3 text-right">Limit Price</th>
                   <th className="py-3.5 px-3 text-right">Filled / Total</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Time</th>
+                  <th className="py-3.5 px-3 text-right">Time</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E8E8] dark:divide-white/5 font-mono">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-[#7C7E8C] font-sans">
+                    <td colSpan={8} className="py-12 text-center text-[#7C7E8C] font-sans">
                       No orders matching selected status filter.
                     </td>
                   </tr>
@@ -166,6 +167,8 @@ export const OrdersPage: React.FC = () => {
                     const priceInr = (ord.priceTicks / 100).toFixed(2);
                     const filled = ord.originalQuantity - ord.remainingQuantity;
                     const dateMs = ord.timestampNs ? ord.timestampNs / 1000000 : Date.now();
+                    const isCancellable = ord.status === 'NEW' || ord.status === 'PARTIALLY_FILLED';
+
                     return (
                       <tr key={ord.orderId} className="hover:bg-[#F9FAFB] dark:hover:bg-neutral-800/40 transition">
                         <td className="py-4 px-4 sm:px-6 font-bold text-[#44475B] dark:text-white">
@@ -206,8 +209,30 @@ export const OrdersPage: React.FC = () => {
                             {ord.status}
                           </span>
                         </td>
-                        <td className="py-4 px-4 sm:px-6 text-right text-[#7C7E8C] text-[11px] font-sans">
+                        <td className="py-4 px-3 text-right text-[#7C7E8C] text-[11px] font-sans">
                           {new Date(dateMs).toLocaleTimeString()}
+                        </td>
+                        <td className="py-4 px-4 sm:px-6 text-center font-sans">
+                          {isCancellable ? (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                  const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+                                  const res = await fetch(`${apiBase}/api/orders/${ord.orderId}/cancel`, { method: 'POST' });
+                                  if (res.ok) {
+                                    setOrders(prev => prev.map(o => o.orderId === ord.orderId ? { ...o, status: 'CANCELLED' } : o));
+                                  }
+                                } catch {}
+                              }}
+                              className="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-bold transition border border-rose-200 cursor-pointer"
+                              title="Cancel Resting Order"
+                            >
+                              Cancel
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-[#7C7E8C]">—</span>
+                          )}
                         </td>
                       </tr>
                     );

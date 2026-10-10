@@ -18,6 +18,7 @@ import { OrdersPage } from './pages/growclone/OrdersPage';
 import { WatchlistPage } from './pages/growclone/WatchlistPage';
 import { ProfilePage } from './pages/growclone/ProfilePage';
 import { WalletPage } from './pages/growclone/WalletPage';
+import { BondsPage } from './pages/growclone/BondsPage';
 import { HoldingsPortfolioView } from './components/growclone/HoldingsPortfolioView';
 
 const AppLayout: React.FC = () => {
@@ -104,14 +105,19 @@ const AppLayout: React.FC = () => {
         <Route path="/stocks/user/orders" element={<OrdersPage />} />
         <Route path="/stocks/user/watchlist" element={<WatchlistPage />} />
         
+        {/* Bonds Exploration */}
+        <Route path="/bonds" element={<BondsPage />} />
+        
         {/* F&O & Mutual Funds */}
         <Route path="/futures-and-options/user/explore" element={<FOExplorePage />} />
         <Route path="/fno" element={<FOExplorePage />} />
         <Route path="/mutual-funds/user/explore" element={<MFExplorePage />} />
         <Route path="/mutual-funds" element={<MFExplorePage />} />
+        <Route path="/mutual-funds/dashboard" element={<MFExplorePage />} />
         
         {/* Bank & Autopay */}
         <Route path="/user/bank-autopay" element={<BankAutopayPage />} />
+        <Route path="/profile/bank-accounts" element={<BankAutopayPage />} />
         
         {/* Profile & Wallet */}
         <Route path="/profile" element={<ProfilePage />} />

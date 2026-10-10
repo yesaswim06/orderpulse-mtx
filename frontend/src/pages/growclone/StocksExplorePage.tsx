@@ -208,10 +208,10 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                 </div>
 
                 <div className="mt-3">
-                  <button className="text-xs font-bold text-[#00B386] hover:text-[#009e75] flex items-center gap-1 cursor-pointer">
-                    <span>See more</span>
+                  <Link to="/bonds" className="text-xs font-bold text-[#00B386] hover:text-[#009e75] inline-flex items-center gap-1 cursor-pointer">
+                    <span>See more bonds & calculate yields</span>
                     <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  </Link>
                 </div>
               </section>
 
@@ -328,7 +328,13 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                   {PRODUCTS_AND_TOOLS.map((item) => (
                     <div
                       key={item.id}
-                      onClick={() => item.id === 'terminal' && navigate('/trade')}
+                      onClick={() => {
+                        if (item.id === 'terminal') navigate('/trade');
+                        else if (item.id === 'bonds') navigate('/bonds');
+                        else if (item.id === 'ipo') navigate('/stocks/user/explore');
+                        else if (item.id === 'etfs') navigate('/mutual-funds/user/explore');
+                        else if (item.id === 'screener') navigate('/trade');
+                      }}
                       className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
