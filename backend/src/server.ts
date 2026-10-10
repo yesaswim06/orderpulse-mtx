@@ -4,6 +4,7 @@ import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { MatchingEngine } from './matchingEngine';
 import { PersistenceWorker } from './persistence';
+import { MultiDbPersistenceWorker } from './multiDbPersistence';
 import { ticksToRupees, rupeesToTicks } from './types';
 
 const app = express();
@@ -20,6 +21,7 @@ const REF_PRICE_TICKS = rupeesToTicks(REF_PRICE_RUPEES);
 
 const engine = new MatchingEngine(REF_PRICE_TICKS, 5.0, 30);
 const persistence = new PersistenceWorker(100000);
+const multiDb = new MultiDbPersistenceWorker(100000);
 
 // Connected WebSocket clients
 const clients = new Set<WebSocket>();
@@ -117,6 +119,7 @@ app.post('/api/orders', (req: Request, res: Response) => {
     return res.status(400).json({ success: false, error: 'Missing required field: requestId' });
   }
 
+  const matchStart = performance.now();
   const result = engine.submitOrder(
     orderId,
     requestId,
@@ -126,6 +129,8 @@ app.post('/api/orders', (req: Request, res: Response) => {
     priceTicks,
     quantity
   );
+  const matchEnd = performance.now();
+  const matchingLatencyMicros = Number(((matchEnd - matchStart) * 1000).toFixed(3));
 
   if (!result.success) {
     return res.status(400).json(result);
@@ -133,6 +138,7 @@ app.post('/api/orders', (req: Request, res: Response) => {
 
   // Persistence worker journaling
   persistence.enqueue(result.sequenceId, 'ORDER_ACCEPTED', result);
+  multiDb.enqueue(result.sequenceId, 'ORDER_ACCEPTED', result, matchingLatencyMicros);
 
   // Broadcast updates over WebSocket
   broadcast({
@@ -144,9 +150,13 @@ app.post('/api/orders', (req: Request, res: Response) => {
     book: engine.getBookSnapshot(),
     breaker: engine.getBreakerStatus(),
     metrics: engine.getMetrics(),
+    matchingLatencyMicros,
   });
 
-  return res.status(200).json(result);
+  return res.status(200).json({
+    ...result,
+    matchingLatencyMicros,
+  });
 });
 
 // 2. Cancel Order
@@ -154,12 +164,17 @@ app.post('/api/orders/:id/cancel', (req: Request, res: Response) => {
   const { id } = req.params;
   const { participantId } = req.body || {};
 
+  const matchStart = performance.now();
   const result = engine.cancelOrder(id, participantId);
+  const matchEnd = performance.now();
+  const matchingLatencyMicros = Number(((matchEnd - matchStart) * 1000).toFixed(3));
+
   if (!result.success) {
     return res.status(400).json(result);
   }
 
   persistence.enqueue(result.sequenceId, 'ORDER_CANCELLED', result);
+  multiDb.enqueue(result.sequenceId, 'ORDER_CANCELLED', result, matchingLatencyMicros);
 
   broadcast({
     type: 'ORDER_CANCELLED',
@@ -167,9 +182,13 @@ app.post('/api/orders/:id/cancel', (req: Request, res: Response) => {
     cancelledOrder: result.cancelledOrder,
     book: engine.getBookSnapshot(),
     metrics: engine.getMetrics(),
+    matchingLatencyMicros,
   });
 
-  return res.status(200).json(result);
+  return res.status(200).json({
+    ...result,
+    matchingLatencyMicros,
+  });
 });
 
 // 3. Get Order Book
@@ -199,24 +218,108 @@ app.get('/api/metrics', (req: Request, res: Response) => {
   return res.json(engine.getMetrics());
 });
 
-// 8. Health Check
+// 8. Real Health Endpoint (Shows true connectivity, no fake success)
 app.get('/api/health', (req: Request, res: Response) => {
-  const pStatus = persistence.getStatus();
+  const dbStatus = multiDb.getStatus();
   const bStatus = engine.getBreakerStatus();
   return res.json({
     status: 'ok',
     engine: bStatus.state,
-    persistence: pStatus.healthy ? 'healthy' : 'degraded',
-    postgresConnected: pStatus.connectedToPostgres,
-    postgresUri: pStatus.connectionUri,
-    persistenceQueueSize: pStatus.queueSize,
-    persistedSequence: pStatus.persistedSequence,
+    databaseConnectivity: {
+      mysql: {
+        connected: dbStatus.mysqlConnected,
+        provider: 'Railway MySQL 8.0 (InnoDB ACID)',
+        uri: dbStatus.mysqlUri || 'MYSQL_URL environment variable'
+      },
+      mongodb: {
+        connected: dbStatus.mongoConnected,
+        provider: 'MongoDB Atlas v7.0 (WiredTiger)',
+        uri: dbStatus.mongoUri || 'MONGODB_URI environment variable'
+      },
+      inMemoryEngineFallback: true,
+      asyncPersistenceQueue: dbStatus.queueSize,
+      persistedSequence: dbStatus.persistedSequence
+    },
     currentSequence: engine.currentSequence(),
-    guarantees: pStatus.guarantee,
+    timestamp: new Date().toISOString()
   });
 });
 
-// Database Inspector Endpoints (Essential for Jury Demo)
+// 9. Wallet: Balances
+app.get('/api/wallet/balances', (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || 'USER-DEMO-01';
+  return res.json(multiDb.getBalances(userId));
+});
+
+// 10. Wallet: Add Money via UPI, Cards, Netbanking
+app.post('/api/wallet/deposit', async (req: Request, res: Response) => {
+  const { userId, amount, method, paymentDetails } = req.body;
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ success: false, error: 'Amount must be greater than zero' });
+  }
+  const result = await multiDb.addFunds(
+    userId || 'USER-DEMO-01',
+    Number(amount),
+    method || 'UPI',
+    paymentDetails
+  );
+  return res.json(result);
+});
+
+// 11. Wallet: Withdraw to Bank Account
+app.post('/api/wallet/withdraw', async (req: Request, res: Response) => {
+  const { userId, amount, bankDetails } = req.body;
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ success: false, error: 'Amount must be greater than zero' });
+  }
+  if (!bankDetails || !bankDetails.accountNumber || !bankDetails.ifsc) {
+    return res.status(400).json({ success: false, error: 'Valid bank account number and IFSC are required' });
+  }
+  const result = await multiDb.withdrawFunds(
+    userId || 'USER-DEMO-01',
+    Number(amount),
+    bankDetails
+  );
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
+
+// 12. Authenticated Admin Database Verification Dashboard
+app.get('/admin/database-verification', async (req: Request, res: Response) => {
+  const token = (req.headers['x-admin-token'] as string) || (req.query.token as string);
+  if (token !== DEMO_ADMIN_TOKEN) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Admin authentication token required'
+    });
+  }
+
+  const verification = await multiDb.getVerificationDashboard();
+  return res.json({
+    success: true,
+    ...verification
+  });
+});
+
+// 13. Safe Jury SQL Verification Console (Predefined Parameterized Queries ONLY)
+app.post('/api/admin/jury-query', async (req: Request, res: Response) => {
+  const { queryKey, limit } = req.body;
+  const token = (req.headers['x-admin-token'] as string) || req.body.token;
+
+  if (token !== DEMO_ADMIN_TOKEN) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Read-only jury token required'
+    });
+  }
+
+  const result = await multiDb.executeJuryQuery(queryKey || 'LATEST_ORDERS', { limit });
+  return res.json(result);
+});
+
+// Database Inspector Endpoints (Backwards Compatibility with Existing UI)
 app.get('/api/database/status', (req: Request, res: Response) => {
   return res.json(persistence.getStatus());
 });
@@ -241,10 +344,29 @@ app.get('/api/database/query', async (req: Request, res: Response) => {
 });
 
 app.post('/api/database/connect', async (req: Request, res: Response) => {
-  const connectionUri = req.body.connectionUri || req.body.databaseUrl;
+  const connectionUri = req.body.connectionUri || req.body.databaseUrl || req.body.mysqlUrl;
   if (!connectionUri) {
-    return res.status(400).json({ success: false, connected: false, message: 'Missing connectionUri or databaseUrl' });
+    return res.status(400).json({ success: false, connected: false, message: 'Missing connection string' });
   }
+
+  if (connectionUri.startsWith('mysql://')) {
+    const resMysql = await multiDb.initMysql(connectionUri);
+    return res.json({
+      success: resMysql.success,
+      connected: resMysql.success,
+      database: 'Railway MySQL',
+      message: resMysql.message
+    });
+  } else if (connectionUri.startsWith('mongodb')) {
+    const resMongo = await multiDb.initMongo(connectionUri);
+    return res.json({
+      success: resMongo.success,
+      connected: resMongo.success,
+      database: 'MongoDB Atlas',
+      message: resMongo.message
+    });
+  }
+
   const result = await persistence.initPostgres(connectionUri);
   return res.json({
     success: result.success,

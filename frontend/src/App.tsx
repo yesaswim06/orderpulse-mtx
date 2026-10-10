@@ -14,6 +14,7 @@ import { MarketsView } from './components/MarketsView';
 import { PerformanceView } from './components/PerformanceView';
 import { DatabaseView } from './components/DatabaseView';
 import { DocsView } from './components/DocsView';
+import { WalletModal } from './components/WalletModal';
 import {
   BreakerStatus,
   EngineMetrics,
@@ -32,6 +33,8 @@ export const App: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
+  const [walletBalance, setWalletBalance] = useState<number>(1000000);
   const [isDbInspectorOpen, setIsDbInspectorOpen] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>(
@@ -42,6 +45,16 @@ export const App: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
 
   const apiBase = backendTarget === 'railway' ? 'https://orderpulse-mtx.up.railway.app' : '';
+
+  const fetchWalletBalance = useCallback(async () => {
+    try {
+      const res = await fetch(`${apiBase}/api/wallet/balances?userId=USER-DEMO-01`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.inr !== undefined) setWalletBalance(data.inr);
+      }
+    } catch {}
+  }, [apiBase]);
 
   // Fetch full state via REST as fallback or init
   const fetchFullState = useCallback(async () => {
@@ -292,6 +305,8 @@ export const App: React.FC = () => {
         onOpenAdmin={() => setIsAdminOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        walletBalance={walletBalance}
+        onOpenWallet={() => setIsWalletOpen(true)}
       />
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">
@@ -393,6 +408,15 @@ export const App: React.FC = () => {
         breaker={breaker}
         onResume={handleResume}
         onResetReference={handleResetReference}
+      />
+
+      {/* Wallet Deposit / Withdraw Modal */}
+      <WalletModal
+        isOpen={isWalletOpen}
+        onClose={() => setIsWalletOpen(false)}
+        apiBase={apiBase}
+        currentBalance={walletBalance}
+        onBalanceUpdated={fetchWalletBalance}
       />
     </div>
   );

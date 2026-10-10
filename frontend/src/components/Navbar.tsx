@@ -29,6 +29,8 @@ interface NavbarProps {
   onOpenAdmin: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  walletBalance: number;
+  onOpenWallet: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -43,6 +45,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAdmin,
   theme,
   onToggleTheme,
+  walletBalance,
+  onOpenWallet,
 }) => {
   const state = breaker?.state || 'RUNNING';
   const midPrice = snapshot?.bestBidTicks && snapshot?.bestAskTicks
@@ -174,11 +178,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline">{isConnected ? 'WS Online' : 'Offline'}</span>
           </div>
 
-          {/* Simulated Wallet Balance */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.07] text-slate-300 font-mono-numbers text-[11px]">
-            <Wallet className="w-3 h-3 text-slate-400" />
-            <span>₹1,000,000</span>
-          </div>
+          {/* Interactive Wallet Balance Button (Deposit / Withdraw) */}
+          <button
+            onClick={onOpenWallet}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono-numbers text-[11px] font-semibold transition cursor-pointer"
+            title="Click to Deposit or Withdraw Funds via UPI, Cards, Netbanking"
+          >
+            <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+            <span>₹{walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span className="text-[10px] bg-emerald-500/20 px-1 py-0.2 rounded text-emerald-300">Deposit</span>
+          </button>
 
           {/* Dark / Light Theme Switcher */}
           <button
