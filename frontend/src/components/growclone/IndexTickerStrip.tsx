@@ -1,65 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Globe, TrendingUp, TrendingDown } from 'lucide-react';
-import { INDEX_TICKERS, IndexTicker } from '../../data/mockStocks';
+import { TICKER_DATA } from '../../data/growcloneData';
 
-interface IndexTickerStripProps {
-  theme?: 'light' | 'dark';
-}
-
-export const IndexTickerStrip: React.FC<IndexTickerStripProps> = ({ theme = 'light' }) => {
-  const [tickers, setTickers] = useState<IndexTicker[]>(INDEX_TICKERS);
-
-  // Micro-fluctuations for realistic live ticker feeling
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTickers((prev) =>
-        prev.map((t) => {
-          const delta = (Math.random() - 0.48) * 1.5;
-          const currentPrice = parseFloat(t.price.replace(/,/g, ''));
-          const newPrice = (currentPrice + delta).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-          return { ...t, price: newPrice };
-        })
-      );
-    }, 2800);
-    return () => clearInterval(interval);
-  }, []);
-
+export const IndexTickerStrip: React.FC = () => {
   return (
-    <div
-      className={`w-full border-b text-[12px] transition-colors overflow-x-auto scrollbar-none font-sans ${
-        theme === 'dark' ? 'bg-[#0A0D15] border-[#1A2234] text-[#A6AFC2]' : 'bg-[#FAFAFA] border-[#E8E8E8] text-[#44475B]'
-      }`}
-    >
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-2 flex items-center justify-between gap-6 shrink-0">
-        <div className="flex items-center gap-7 overflow-x-auto scrollbar-none">
-          {tickers.map((item) => (
-            <div key={item.name} className="flex items-center gap-1.5 shrink-0 font-medium">
-              <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-[#2A2E3D]'}`}>
+    <div className="w-full bg-white dark:bg-[#121212] border-b border-[#E8E8E8] dark:border-white/10 transition-colors">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-2 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-6 sm:gap-8 shrink-0 font-mono text-xs">
+          {TICKER_DATA.map((item) => (
+            <div key={item.name} className="flex items-center gap-2">
+              <span className="font-semibold text-[#44475B] dark:text-[#E5E7EB] font-sans">
                 {item.name}
               </span>
-              <span className="font-mono tabular-nums">{item.price}</span>
+              <span className="font-bold text-[#44475B] dark:text-white">
+                {item.price}
+              </span>
               <span
-                className={`flex items-center gap-0.5 text-[11px] font-mono tabular-nums ${
-                  item.isPositive ? 'text-[#00B386]' : 'text-[#EB5B3C]'
+                className={`text-[11px] font-medium flex items-center gap-0.5 ${
+                  item.isUp ? 'text-[#00B386]' : 'text-[#EB5B3C]'
                 }`}
               >
-                {item.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                <span>
-                  {item.change} ({item.changePercent})
-                </span>
+                {item.isUp ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : (
+                  <TrendingDown className="w-3 h-3" />
+                )}
+                <span>{item.change}</span>
+                <span className="opacity-90">({item.percent})</span>
               </span>
             </div>
           ))}
         </div>
 
+        {/* Globe icon button */}
         <button
-          className={`p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition shrink-0 ${
-            theme === 'dark' ? 'text-[#8B93A7]' : 'text-[#7C7E8C]'
-          }`}
-          title="Global Markets Overview"
+          className="shrink-0 p-1.5 rounded-full hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 text-[#7C7E8C] transition"
+          title="Global Markets"
         >
           <Globe className="w-4 h-4" />
         </button>

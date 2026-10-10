@@ -1,59 +1,66 @@
 import React from 'react';
-import { CandleData } from '../../data/mockFnO';
+
+interface Candle {
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  isUp: boolean;
+}
 
 interface CandleMiniProps {
-  candles: CandleData[];
-  width?: number;
+  candles: Candle[];
   height?: number;
+  width?: number;
 }
 
 export const CandleMini: React.FC<CandleMiniProps> = ({
   candles,
+  height = 54,
   width = 120,
-  height = 50,
 }) => {
-  const minVal = Math.min(...candles.map((c) => c.low));
-  const maxVal = Math.max(...candles.map((c) => c.high));
-  const range = maxVal - minVal || 1;
+  const minPrice = Math.min(...candles.map((c) => c.low));
+  const maxPrice = Math.max(...candles.map((c) => c.high));
+  const range = maxPrice - minPrice || 1;
 
   const scaleY = (val: number) => {
-    return height - ((val - minVal) / range) * (height - 8) - 4;
+    return height - ((val - minPrice) / range) * (height - 8) - 4;
   };
 
-  const candleWidth = Math.max(width / candles.length - 3, 4);
+  const candleWidth = Math.max(3, Math.floor((width - candles.length * 3) / candles.length));
 
   return (
     <svg width={width} height={height} className="overflow-visible">
       {candles.map((c, i) => {
-        const isUp = c.close >= c.open;
-        const color = isUp ? '#00B386' : '#EB5B3C';
-        const x = i * (width / candles.length) + (width / candles.length - candleWidth) / 2;
-        const yTop = scaleY(Math.max(c.open, c.close));
-        const yBottom = scaleY(Math.min(c.open, c.close));
-        const bodyHeight = Math.max(yBottom - yTop, 2);
-        const wickX = x + candleWidth / 2;
-        const wickHighY = scaleY(c.high);
-        const wickLowY = scaleY(c.low);
+        const x = i * (candleWidth + 3) + 2;
+        const yOpen = scaleY(c.open);
+        const yClose = scaleY(c.close);
+        const yHigh = scaleY(c.high);
+        const yLow = scaleY(c.low);
+
+        const bodyY = Math.min(yOpen, yClose);
+        const bodyH = Math.max(2, Math.abs(yClose - yOpen));
+        const color = c.isUp ? '#00B386' : '#EB5B3C';
 
         return (
           <g key={i}>
-            {/* High/Low Wick */}
+            {/* Upper and lower wick */}
             <line
-              x1={wickX}
-              y1={wickHighY}
-              x2={wickX}
-              y2={wickLowY}
+              x1={x + candleWidth / 2}
+              y1={yHigh}
+              x2={x + candleWidth / 2}
+              y2={yLow}
               stroke={color}
-              strokeWidth="1.2"
+              strokeWidth={1}
             />
-            {/* Candle Body */}
+            {/* Candle body */}
             <rect
               x={x}
-              y={yTop}
+              y={bodyY}
               width={candleWidth}
-              height={bodyHeight}
+              height={bodyH}
               fill={color}
-              rx="1"
+              rx={0.5}
             />
           </g>
         );
