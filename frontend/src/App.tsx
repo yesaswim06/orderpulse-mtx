@@ -30,19 +30,24 @@ export const App: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   const [isDbInspectorOpen, setIsDbInspectorOpen] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>(
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'local' : 'railway'
+  );
 
   const lastSeqRef = useRef<number>(0);
   const wsRef = useRef<WebSocket | null>(null);
+
+  const apiBase = backendTarget === 'railway' ? 'https://orderpulse-mtx.up.railway.app' : '';
 
   // Fetch full state via REST as fallback or init
   const fetchFullState = useCallback(async () => {
     try {
       const [bookRes, breakerRes, metricsRes, tradesRes, ordersRes] = await Promise.all([
-        fetch('/api/book'),
-        fetch('/api/breaker'),
-        fetch('/api/metrics'),
-        fetch('/api/trades?limit=30'),
-        fetch('/api/orders?limit=30'),
+        fetch(`${apiBase}/api/book`),
+        fetch(`${apiBase}/api/breaker`),
+        fetch(`${apiBase}/api/metrics`),
+        fetch(`${apiBase}/api/trades?limit=30`),
+        fetch(`${apiBase}/api/orders?limit=30`),
       ]);
 
       if (bookRes.ok) setSnapshot(await bookRes.json());
@@ -53,15 +58,20 @@ export const App: React.FC = () => {
     } catch (e) {
       console.error('REST poll error:', e);
     }
-  }, []);
+  }, [apiBase]);
 
   // WebSocket Connection & Real-Time Sync
   useEffect(() => {
     let reconnectTimeout: any;
 
     const connectWs = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      let wsUrl = '';
+      if (backendTarget === 'railway') {
+        wsUrl = 'wss://orderpulse-mtx.up.railway.app/ws';
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}/ws`;
+      }
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -137,7 +147,7 @@ export const App: React.FC = () => {
       clearTimeout(reconnectTimeout);
       if (wsRef.current) wsRef.current.close();
     };
-  }, [fetchFullState]);
+  }, [backendTarget, fetchFullState]);
 
   // Submit Order Action
   const handleSubmitOrder = async (order: {
@@ -150,7 +160,7 @@ export const App: React.FC = () => {
     const requestId = `REQ-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    const res = await fetch('/api/orders', {
+    const res = await fetch(`${apiBase}/api/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -176,7 +186,7 @@ export const App: React.FC = () => {
   const handleCancelOrder = async (orderId: string) => {
     try {
       setCancellingId(orderId);
-      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${apiBase}/api/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -193,7 +203,7 @@ export const App: React.FC = () => {
 
   // Scenario Trigger
   const handleTriggerScenario = async (scenario: string) => {
-    const res = await fetch('/api/admin/scenario', {
+    const res = await fetch(`${apiBase}/api/admin/scenario`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scenario }),
@@ -206,7 +216,7 @@ export const App: React.FC = () => {
 
   // Admin Resume Action
   const handleResume = async (token: string) => {
-    const res = await fetch('/api/admin/resume', {
+    const res = await fetch(`${apiBase}/api/admin/resume`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -227,7 +237,7 @@ export const App: React.FC = () => {
     reason: string,
     token: string
   ) => {
-    const res = await fetch('/api/admin/reference', {
+    const res = await fetch(`${apiBase}/api/admin/reference`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -255,6 +265,8 @@ export const App: React.FC = () => {
         isConnected={isConnected}
         onOpenAdmin={() => setIsAdminOpen(true)}
         onOpenDatabase={() => setIsDbInspectorOpen(true)}
+        backendTarget={backendTarget}
+        onToggleTarget={() => setBackendTarget(prev => prev === 'railway' ? 'local' : 'railway')}
       />
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">

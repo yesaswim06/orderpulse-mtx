@@ -8,6 +8,8 @@ interface HeaderProps {
   isConnected: boolean;
   onOpenAdmin: () => void;
   onOpenDatabase: () => void;
+  backendTarget: 'railway' | 'local';
+  onToggleTarget: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,6 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   isConnected,
   onOpenAdmin,
   onOpenDatabase,
+  backendTarget,
+  onToggleTarget,
 }) => {
   const state = breaker?.state || 'RUNNING';
 
@@ -68,8 +72,18 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* System Vitals, Database Inspector & Operator Button */}
+        {/* System Vitals, Target Switcher, Database Inspector & Operator Button */}
         <div className="flex items-center gap-2.5 text-xs">
+          {/* Target Host Switcher (Railway vs Local) */}
+          <button
+            onClick={onToggleTarget}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 border border-purple-700/60 transition cursor-pointer font-semibold"
+            title="Switch between Railway Cloud and Local matching engine"
+          >
+            <span className="w-2 h-2 rounded-full bg-purple-400" />
+            <span>Host: {backendTarget === 'railway' ? 'Railway Cloud' : 'Local Host'}</span>
+          </button>
+
           {/* WebSocket Status */}
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${
             isConnected
