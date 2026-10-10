@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build artifacts
+dist/
+build/
+bin/
+*.exe
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+.cache/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Environment and secrets
+.env
+.env.local
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# PostgreSQL
+pgdata/
