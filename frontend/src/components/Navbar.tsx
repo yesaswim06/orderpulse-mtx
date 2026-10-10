@@ -56,21 +56,25 @@ export const Navbar: React.FC<NavbarProps> = ({
     : '100.00';
 
   return (
-    <header className="sticky top-0 z-50 bg-[#080d1a]/80 backdrop-blur-2xl border-b border-white/[0.08] shadow-sm">
+    <header className="sticky top-0 z-50 bg-[#121212] dark:bg-[#121212] border-b border-[#E8E8E8]/20 dark:border-white/[0.08] shadow-sm">
       {/* Main Top Nav */}
       <div className="max-w-[1920px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
         {/* Brand & Platform Navigation Tabs */}
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2.5 cursor-pointer group" title="Return to Home Landing Page">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-950/40 border border-white/10 group-hover:scale-105 transition-transform">
-              <Zap className="w-5 h-5 text-white stroke-[2.2]" />
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00B386] via-[#00c997] to-[#10b981] flex items-center justify-center shadow-md border border-white/10 group-hover:scale-105 transition-transform">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-none stroke-current stroke-2">
+                <path d="M3 12c3-4 6-4 9 0s6 4 9 0" />
+                <path d="M3 7c3-3 6-3 9 0s6 3 9 0" opacity="0.6" />
+                <path d="M3 17c3-3 6-3 9 0s6 3 9 0" opacity="0.6" />
+              </svg>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight text-white group-hover:text-sky-300 transition-colors">OrderPulse</span>
-                <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">MTX</span>
+                <span className="text-base font-bold tracking-tight text-white group-hover:text-[#00B386] transition-colors">OrderPulse</span>
+                <span className="text-xs font-mono font-bold text-[#00B386] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-[#00B386]/30">TERMINAL</span>
               </div>
-              <span className="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">Trading Simulation</span>
+              <span className="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">C++20 FIFO Matching</span>
             </div>
           </Link>
 

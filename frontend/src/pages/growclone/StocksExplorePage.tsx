@@ -18,11 +18,28 @@ import {
   POPULAR_BONDS,
   MOST_BOUGHT_STOCKS,
   PRODUCTS_AND_TOOLS,
+  StockItem
 } from '../../data/growcloneData';
+import { StockDetailModal } from '../../components/growclone/StockDetailModal';
+import { HoldingsPortfolioView } from '../../components/growclone/HoldingsPortfolioView';
 
-export const StocksExplorePage: React.FC = () => {
+interface StocksExplorePageProps {
+  walletBalance?: number;
+  onOpenWallet?: () => void;
+  onRefreshBalance?: () => void;
+}
+
+export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
+  walletBalance = 1000000,
+  onOpenWallet = () => {},
+  onRefreshBalance = () => {}
+}) => {
   const [activeTab, setActiveTab] = useState('Explore');
+  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
   const navigate = useNavigate();
+
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] transition-colors pb-16">
@@ -38,8 +55,26 @@ export const StocksExplorePage: React.FC = () => {
 
       {/* Main Content Layout */}
       <main className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
-        {activeTab !== 'Explore' ? (
-          /* Placeholder for Holdings/Positions/Orders/Watchlist tabs */
+        {activeTab === 'Holdings' ? (
+          <HoldingsPortfolioView
+            walletBalance={walletBalance}
+            onOpenWallet={onOpenWallet}
+            onSelectStock={(sym) => {
+              const match = MOST_BOUGHT_STOCKS.find(s => s.symbol === sym) || {
+                id: `stock-${sym}`,
+                symbol: sym,
+                name: `${sym} Equity Share`,
+                logo: sym.slice(0, 2),
+                price: 100.00,
+                change: 1.50,
+                changePercent: 1.52,
+                isPositive: true
+              };
+              setSelectedStock(match);
+            }}
+          />
+        ) : activeTab !== 'Explore' ? (
+          /* Placeholder for Positions/Orders/Watchlist tabs */
           <div className="py-12 bg-white dark:bg-[#151515] rounded-2xl border border-[#E8E8E8] dark:border-white/10 p-8 text-center max-w-xl mx-auto shadow-sm">
             <h3 className="text-base font-bold text-[#44475B] dark:text-white mb-2">
               {activeTab} Management
@@ -50,13 +85,19 @@ export const StocksExplorePage: React.FC = () => {
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setActiveTab('Explore')}
-                className="px-4 py-2 rounded-full border border-[#E8E8E8] dark:border-white/10 text-xs font-semibold hover:bg-[#F8F8F8] dark:hover:bg-neutral-800"
+                className="px-4 py-2 rounded-full border border-[#E8E8E8] dark:border-white/10 text-xs font-semibold hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 cursor-pointer"
               >
                 Back to Explore
               </button>
+              <button
+                onClick={() => setActiveTab('Holdings')}
+                className="px-4 py-2 rounded-full border border-[#00B386] text-[#00B386] text-xs font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
+              >
+                View Portfolio
+              </button>
               <Link
                 to="/trade"
-                className="px-5 py-2 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <Activity className="w-3.5 h-3.5" />
                 <span>Open Matching Terminal</span>
@@ -135,13 +176,14 @@ export const StocksExplorePage: React.FC = () => {
                   {MOST_BOUGHT_STOCKS.slice(0, 4).map((stock) => (
                     <div
                       key={stock.id}
-                      className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between"
+                      onClick={() => setSelectedStock(stock)}
+                      className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-lg hover:border-[#00B386]/40 hover:-translate-y-0.5 transition-all cursor-pointer flex flex-col justify-between group"
                     >
                       <div>
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-[#00B386] font-bold text-xs flex items-center justify-center mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-[#00B386] font-bold text-xs flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
                           {stock.logo}
                         </div>
-                        <h3 className="font-bold text-xs text-[#44475B] dark:text-white line-clamp-1 mb-0.5">
+                        <h3 className="font-bold text-xs text-[#44475B] dark:text-white line-clamp-1 mb-0.5 group-hover:text-[#00B386] transition-colors">
                           {stock.name}
                         </h3>
                         <span className="text-[10px] font-mono text-[#7C7E8C] block mb-3">
@@ -153,9 +195,14 @@ export const StocksExplorePage: React.FC = () => {
                         <div className="font-extrabold text-sm text-[#44475B] dark:text-white font-mono">
                           ₹{stock.price.toFixed(2)}
                         </div>
-                        <div className="text-[11px] font-semibold text-[#00B386] flex items-center gap-0.5 mt-0.5">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</span>
+                        <div className="text-[11px] font-semibold text-[#00B386] flex items-center justify-between mt-0.5">
+                          <span className="flex items-center gap-0.5">
+                            <TrendingUp className="w-3 h-3" />
+                            <span>+{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</span>
+                          </span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-[#00B386] opacity-0 group-hover:opacity-100 transition-opacity">
+                            Trade
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -261,6 +308,19 @@ export const StocksExplorePage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Stock Buy / Sell Order Modal */}
+      {selectedStock && (
+        <StockDetailModal
+          stock={selectedStock}
+          onClose={() => setSelectedStock(null)}
+          apiBase={apiBase}
+          walletBalance={walletBalance}
+          onOrderSuccess={() => {
+            onRefreshBalance();
+          }}
+        />
+      )}
     </div>
   );
 };

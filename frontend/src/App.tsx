@@ -72,7 +72,16 @@ const AppLayout: React.FC = () => {
         <Route path="/" element={<Navigate to="/stocks/user/explore" replace />} />
         
         {/* SCREEN 1: Stocks Explore */}
-        <Route path="/stocks/user/explore" element={<StocksExplorePage />} />
+        <Route
+          path="/stocks/user/explore"
+          element={
+            <StocksExplorePage
+              walletBalance={walletBalance}
+              onOpenWallet={() => setIsWalletOpen(true)}
+              onRefreshBalance={fetchWalletBalance}
+            />
+          }
+        />
         
         {/* SCREEN 2: F&O Explore */}
         <Route path="/futures-and-options/user/explore" element={<FOExplorePage />} />
