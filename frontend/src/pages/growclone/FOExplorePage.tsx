@@ -236,7 +236,7 @@ export const FOExplorePage: React.FC = () => {
             <div className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between pb-3 border-b border-[#F0F0F0] dark:border-white/[0.06] mb-4">
                 <h3 className="font-bold text-sm text-[#44475B] dark:text-white">Positions</h3>
-                <Link to="/trade" className="text-xs font-bold text-[#00B386] hover:underline">
+                <Link to="/stocks/user/positions" className="text-xs font-bold text-[#00B386] hover:underline">
                   Dashboard
                 </Link>
               </div>

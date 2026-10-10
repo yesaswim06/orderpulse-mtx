@@ -38,8 +38,7 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
   const navigate = useNavigate();
 
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+  const apiBase = '';
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] transition-colors pb-16">
@@ -306,7 +305,7 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                   <h3 className="font-bold text-sm text-[#44475B] dark:text-white">
                     Your investments
                   </h3>
-                  <Link to="/trade" className="text-xs font-bold text-[#00B386] hover:underline">
+                  <Link to="/stocks/user/holdings" className="text-xs font-bold text-[#00B386] hover:underline">
                     Dashboard
                   </Link>
                 </div>

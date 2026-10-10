@@ -44,8 +44,7 @@ export const WalletPage: React.FC = () => {
     }
   ]);
 
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+  const apiBase = '';
 
   const fetchBalance = async () => {
     try {

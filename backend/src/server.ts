@@ -660,7 +660,7 @@ app.post('/api/admin/scenario', (req: Request, res: Response) => {
     });
   }
 
-  if (scenario === 'burst') {
+  if (scenario === 'burst' || scenario === 'BURST_VOLUME') {
     // Send a burst of 50 orders
     const participants = ['HFT_ALPHA', 'MARKET_MAKER_1', 'RETAIL_1', 'ARBITRAGEUR', 'PENSION_FUND'];
     const results = [];

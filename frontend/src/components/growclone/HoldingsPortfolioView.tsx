@@ -16,6 +16,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { StockDetailModal } from './StockDetailModal';
+import { MOST_BOUGHT_STOCKS, StockItem } from '../../data/growcloneData';
 
 interface PortfolioHolding {
   symbol: string;
@@ -74,6 +76,22 @@ export const HoldingsPortfolioView: React.FC<HoldingsPortfolioViewProps> = ({
 }) => {
   const [holdings, setHoldings] = useState<PortfolioHolding[]>(SAMPLE_HOLDINGS);
   const [filter, setFilter] = useState<'ALL' | 'PROFIT' | 'LOSS'>('ALL');
+  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
+
+  const handleTradeClick = (h: PortfolioHolding) => {
+    const item: StockItem = MOST_BOUGHT_STOCKS.find(s => s.symbol === h.symbol) || {
+      id: h.symbol.toLowerCase(),
+      symbol: h.symbol,
+      name: h.name,
+      logo: h.symbol.slice(0, 2),
+      price: h.currentPrice,
+      change: (h.currentPrice * h.dayChangePercent) / 100,
+      changePercent: h.dayChangePercent,
+      isPositive: h.dayChangePercent >= 0,
+    };
+    setSelectedStock(item);
+    if (onSelectStock) onSelectStock(h.symbol);
+  };
 
   const totalInvested = holdings.reduce((acc, h) => acc + (h.shares * h.avgBuyPrice), 0);
   const totalCurrent = holdings.reduce((acc, h) => acc + (h.shares * h.currentPrice), 0);
@@ -280,7 +298,7 @@ export const HoldingsPortfolioView: React.FC<HoldingsPortfolioViewProps> = ({
                     </td>
                     <td className="p-4 text-center">
                       <button
-                        onClick={() => onSelectStock && onSelectStock(h.symbol)}
+                        onClick={() => handleTradeClick(h)}
                         className="px-3 py-1.5 rounded-lg border border-[#E8E8E8] dark:border-white/10 hover:border-[#00B386] hover:text-[#00B386] text-[11px] font-bold transition cursor-pointer"
                       >
                         Trade
@@ -293,6 +311,18 @@ export const HoldingsPortfolioView: React.FC<HoldingsPortfolioViewProps> = ({
           </table>
         </div>
       </div>
+
+      {selectedStock && (
+        <StockDetailModal
+          stock={selectedStock}
+          onClose={() => setSelectedStock(null)}
+          apiBase=""
+          walletBalance={walletBalance}
+          onOrderSuccess={() => {
+            setSelectedStock(null);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -287,6 +287,21 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
 
                 {/* Rows */}
                 <div className="py-2 text-xs">
+                  {/* Row 0: Portfolio Dashboard */}
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/60 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                      <span className="font-semibold text-sm">Portfolio Dashboard</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
+                  </Link>
+
                   {/* Row 1: Balance */}
                   <Link
                     to="/wallet"

@@ -35,9 +35,7 @@ export const TradingTerminal: React.FC = () => {
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
   const [walletBalance, setWalletBalance] = useState<number>(1000000);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>(
-    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'local' : 'railway'
-  );
+  const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>('local');
 
   const lastSeqRef = useRef<number>(0);
   const wsRef = useRef<WebSocket | null>(null);

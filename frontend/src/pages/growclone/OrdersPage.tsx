@@ -22,8 +22,7 @@ export const OrdersPage: React.FC = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+      const apiBase = '';
       const res = await fetch(`${apiBase}/api/orders?userId=USER-DEMO-01`);
       if (res.ok) {
         const data = await res.json();
@@ -217,8 +216,7 @@ export const OrdersPage: React.FC = () => {
                             <button
                               onClick={async () => {
                                 try {
-                                  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                                  const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+                                  const apiBase = '';
                                   const res = await fetch(`${apiBase}/api/orders/${ord.orderId}/cancel`, { method: 'POST' });
                                   if (res.ok) {
                                     setOrders(prev => prev.map(o => o.orderId === ord.orderId ? { ...o, status: 'CANCELLED' } : o));

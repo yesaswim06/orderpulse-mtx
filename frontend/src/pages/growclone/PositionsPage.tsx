@@ -221,7 +221,7 @@ export const PositionsPage: React.FC = () => {
           <StockDetailModal
             stock={selectedStock}
             onClose={() => setSelectedStock(null)}
-            apiBase={window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : 'https://orderpulse-mtx.up.railway.app'}
+            apiBase=""
             walletBalance={1000000}
             onOrderSuccess={() => {
               setSelectedStock(null);

@@ -19,6 +19,7 @@ import { WatchlistPage } from './pages/growclone/WatchlistPage';
 import { ProfilePage } from './pages/growclone/ProfilePage';
 import { WalletPage } from './pages/growclone/WalletPage';
 import { BondsPage } from './pages/growclone/BondsPage';
+import { DashboardPage } from './pages/growclone/DashboardPage';
 import { HoldingsPortfolioView } from './components/growclone/HoldingsPortfolioView';
 
 const AppLayout: React.FC = () => {
@@ -47,8 +48,7 @@ const AppLayout: React.FC = () => {
   // Poll or fetch wallet balance
   const fetchWalletBalance = useCallback(async () => {
     try {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiBase = isLocal ? '' : 'https://orderpulse-mtx.up.railway.app';
+      const apiBase = '';
       const res = await fetch(`${apiBase}/api/wallet/balances?userId=USER-DEMO-01`);
       if (res.ok) {
         const data = await res.json();
@@ -90,15 +90,35 @@ const AppLayout: React.FC = () => {
             />
           }
         />
+        {/* Dashboard & Holdings Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <DashboardPage
+              walletBalance={walletBalance}
+              onOpenWallet={() => setIsWalletOpen(true)}
+              onRefreshBalance={fetchWalletBalance}
+            />
+          }
+        />
+        <Route
+          path="/dashboard/stocks"
+          element={
+            <DashboardPage
+              walletBalance={walletBalance}
+              onOpenWallet={() => setIsWalletOpen(true)}
+              onRefreshBalance={fetchWalletBalance}
+            />
+          }
+        />
         <Route
           path="/stocks/user/holdings"
           element={
-            <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
-              <HoldingsPortfolioView
-                walletBalance={walletBalance}
-                onOpenWallet={() => setIsWalletOpen(true)}
-              />
-            </div>
+            <DashboardPage
+              walletBalance={walletBalance}
+              onOpenWallet={() => setIsWalletOpen(true)}
+              onRefreshBalance={fetchWalletBalance}
+            />
           }
         />
         <Route path="/stocks/user/positions" element={<PositionsPage />} />
@@ -145,7 +165,7 @@ const AppLayout: React.FC = () => {
       <WalletModal
         isOpen={isWalletOpen}
         onClose={() => setIsWalletOpen(false)}
-        apiBase={window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : 'https://orderpulse-mtx.up.railway.app'}
+        apiBase=""
         currentBalance={walletBalance}
         onBalanceUpdated={fetchWalletBalance}
       />
