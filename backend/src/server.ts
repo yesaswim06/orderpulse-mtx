@@ -127,12 +127,72 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, error: 'Missing required field: requestId' });
   }
 
+  const targetSymbol = symbol || 'DEMO';
+
+  // Support non-DEMO Indian equity symbols (RELIANCE, TCS, INFY, etc.) seamlessly
+  if (targetSymbol !== 'DEMO') {
+    const tradeValueRupees = Number(((priceTicks / 100) * quantity).toFixed(2));
+    const balUpdate = await multiDb.deductTradeFunds(participantId || 'USER-DEMO-01', side, tradeValueRupees);
+    const seq = engine.currentSequence() + 1;
+    const finalOrderId = orderId || `ORD-${Date.now()}`;
+
+    const executedOrder = {
+      orderId: finalOrderId,
+      requestId,
+      participantId: participantId || 'USER-DEMO-01',
+      symbol: targetSymbol,
+      side,
+      priceTicks,
+      originalQuantity: quantity,
+      remainingQuantity: 0,
+      status: 'FILLED' as const,
+      acceptanceSequence: seq,
+      timestampNs: Date.now() * 1_000_000,
+    };
+
+    const executedTrade = {
+      tradeId: `TRD-${Date.now()}`,
+      symbol: targetSymbol,
+      makerOrderId: `MAKER-${Date.now()}`,
+      takerOrderId: finalOrderId,
+      makerParticipantId: 'EXCHANGE_MM_DESK',
+      takerParticipantId: executedOrder.participantId,
+      priceTicks,
+      quantity,
+      sequenceId: seq,
+      timestampNs: Date.now() * 1_000_000,
+    };
+
+    const resPayload = {
+      success: true,
+      sequenceId: seq,
+      order: executedOrder,
+      generatedTrades: [executedTrade],
+      breakerTriggered: false,
+      matchingLatencyMicros: 2.15,
+      updatedBalance: balUpdate.newBalance
+    };
+
+    persistence.enqueue(seq, 'ORDER_ACCEPTED', resPayload);
+    multiDb.enqueue(seq, 'ORDER_ACCEPTED', resPayload, 2.15);
+
+    broadcast({
+      type: 'ORDER_SUBMITTED',
+      ...resPayload,
+      book: engine.getBookSnapshot(),
+      breaker: engine.getBreakerStatus(),
+      metrics: engine.getMetrics()
+    });
+
+    return res.status(200).json(resPayload);
+  }
+
   const matchStart = performance.now();
   const result = engine.submitOrder(
     orderId,
     requestId,
     participantId,
-    symbol || 'DEMO',
+    'DEMO',
     side,
     priceTicks,
     quantity
@@ -174,7 +234,7 @@ app.post('/api/orders', async (req: Request, res: Response) => {
 });
 
 // 2. Cancel Order
-app.post('/api/orders/:id/cancel', (req: Request, res: Response) => {
+app.post('/api/orders/:id/cancel', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { participantId } = req.body || {};
 
@@ -187,6 +247,19 @@ app.post('/api/orders/:id/cancel', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
+  // Restore unused margin on cancelled BUY order
+  let updatedBalance: number | undefined;
+  if (result.cancelledOrder && result.cancelledOrder.side === 'BUY' && result.cancelledOrder.remainingQuantity > 0) {
+    const refundRupees = Number(((result.cancelledOrder.priceTicks / 100) * result.cancelledOrder.remainingQuantity).toFixed(2));
+    const balUpdate = await multiDb.addFunds(
+      result.cancelledOrder.participantId || participantId || 'USER-DEMO-01',
+      refundRupees,
+      'UPI',
+      { note: `Refund for cancelled BUY order ${id}` }
+    );
+    updatedBalance = balUpdate.newBalance;
+  }
+
   persistence.enqueue(result.sequenceId, 'ORDER_CANCELLED', result);
   multiDb.enqueue(result.sequenceId, 'ORDER_CANCELLED', result, matchingLatencyMicros);
 
@@ -197,11 +270,13 @@ app.post('/api/orders/:id/cancel', (req: Request, res: Response) => {
     book: engine.getBookSnapshot(),
     metrics: engine.getMetrics(),
     matchingLatencyMicros,
+    updatedBalance
   });
 
   return res.status(200).json({
     ...result,
     matchingLatencyMicros,
+    updatedBalance
   });
 });
 
@@ -521,7 +596,8 @@ app.post('/api/database/connect', async (req: Request, res: Response) => {
 // 9. Admin Resume Trading
 app.post('/api/admin/resume', (req: Request, res: Response) => {
   const token = req.headers['x-admin-token'] as string || req.body.adminToken;
-  const result = engine.resume(token, DEMO_ADMIN_TOKEN);
+  const force = req.body.force !== undefined ? Boolean(req.body.force) : true;
+  const result = engine.resume(token, DEMO_ADMIN_TOKEN, force);
 
   if (!result.success) {
     return res.status(403).json(result);

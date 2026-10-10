@@ -117,6 +117,16 @@ export class MultiDbPersistenceWorker {
 
     this.localBalancesTable = [
       {
+        account_id: 'ACC-INR-DEMO-01',
+        user_id: 'USER-DEMO-01',
+        name: 'Demo Client (OrderPulse)',
+        currency: 'INR',
+        available: 1000000.00,
+        locked: 0.00,
+        is_demo: 1,
+        updated_at: new Date().toISOString()
+      },
+      {
         account_id: 'ACC-INR-AARAV',
         user_id: 'USER-IN-01',
         name: 'Aarav Sharma',
@@ -663,7 +673,7 @@ export class MultiDbPersistenceWorker {
         account_id: `ACC-INR-${userId}`,
         user_id: userId,
         currency: 'INR',
-        available: 0,
+        available: userId === 'USER-DEMO-01' ? 1000000.00 : 0.00,
         locked: 0,
         is_demo: 1,
         updated_at: new Date().toISOString()

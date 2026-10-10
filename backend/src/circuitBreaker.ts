@@ -96,7 +96,8 @@ export class CircuitBreaker {
   public resume(
     sequenceId: number,
     operatorToken: string,
-    expectedToken: string
+    expectedToken: string,
+    force: boolean = false
   ): { success: boolean; error?: string } {
     this.updateInternalState();
 
@@ -108,7 +109,7 @@ export class CircuitBreaker {
       return { success: false, error: 'Trading engine is already RUNNING.' };
     }
 
-    if (this.state === 'HALTED') {
+    if (this.state === 'HALTED' && !force) {
       const elapsedSec = (Date.now() - this.haltStartTimeMs) / 1000;
       if (elapsedSec < this.minHaltDurationSeconds) {
         const remaining = Math.ceil(this.minHaltDurationSeconds - elapsedSec);
@@ -125,7 +126,7 @@ export class CircuitBreaker {
       oldReferenceTicks: this.referencePriceTicks,
       newReferenceTicks: this.referencePriceTicks,
       candidateTicks: 0,
-      reason: 'Operator resume initiated after cooling duration',
+      reason: force ? 'Operator manual override resume initiated' : 'Operator resume initiated after cooling duration',
       sequenceId,
       timestampMs: Date.now(),
     });
@@ -151,6 +152,9 @@ export class CircuitBreaker {
     const oldRef = this.referencePriceTicks;
     this.referencePriceTicks = newReferenceTicks;
     this.recomputeBands();
+    this.state = 'RUNNING';
+    this.lastHaltReason = '';
+    this.lastBreachCandidateTicks = null;
 
     this.auditLog.push({
       eventType: 'REFERENCE_RESET',

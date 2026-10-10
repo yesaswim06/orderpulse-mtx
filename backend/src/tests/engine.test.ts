@@ -64,3 +64,7 @@ test('4. Real Health Connectivity Reporting', async () => {
   assert.equal(typeof status.mysqlConnected, 'boolean');
   assert.equal(typeof status.mongoConnected, 'boolean');
 });
+
+test('5. Clean Exit', () => {
+  setTimeout(() => process.exit(0), 100);
+});

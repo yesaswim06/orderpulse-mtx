@@ -478,10 +478,11 @@ export class MatchingEngine {
 
   public resume(
     operatorToken: string,
-    expectedToken: string
+    expectedToken: string,
+    force: boolean = false
   ): { success: boolean; error?: string; resumedTrades?: Trade[] } {
     const seq = ++this.sequenceCounter;
-    const res = this.breaker.resume(seq, operatorToken, expectedToken);
+    const res = this.breaker.resume(seq, operatorToken, expectedToken, force);
     if (!res.success) {
       return res;
     }
