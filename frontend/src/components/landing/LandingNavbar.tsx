@@ -42,39 +42,38 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onOpenDemo }) => {
           </Link>
 
           {/* Center: Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-7">
             <Link
-              to="/"
+              to="/stocks/user/explore"
               className="text-sm font-semibold text-[#0a192f] hover:text-emerald-600 transition"
             >
-              Home
+              Stocks
+            </Link>
+            <Link
+              to="/futures-and-options/user/explore"
+              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
+            >
+              F&O
+            </Link>
+            <Link
+              to="/mutual-funds/user/explore"
+              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
+            >
+              Mutual Funds
+            </Link>
+            <Link
+              to="/bonds"
+              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
+            >
+              Bonds
             </Link>
             <Link
               to="/trade"
-              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition flex items-center gap-1.5"
+              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1.5"
             >
               <Activity className="w-4 h-4 text-emerald-500" />
-              <span>Trading Terminal</span>
+              <span>Matching Terminal</span>
             </Link>
-            <a
-              href="#technology"
-              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
-            >
-              Technology
-            </a>
-            <a
-              href="#features"
-              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
-            >
-              Features
-            </a>
-            <a
-              href="#circuit-breaker"
-              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition flex items-center gap-1"
-            >
-              <Shield className="w-4 h-4 text-teal-500" />
-              <span>Circuit Breakers</span>
-            </a>
           </nav>
 
           {/* Right: Auth & CTA */}
