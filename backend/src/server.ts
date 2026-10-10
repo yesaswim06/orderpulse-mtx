@@ -229,6 +229,7 @@ app.get('/api/metrics', (req: Request, res: Response) => {
 // 8. Real Health Endpoint (Shows true connectivity, no fake success)
 app.get('/api/health', (req: Request, res: Response) => {
   const dbStatus = multiDb.getStatus();
+  const pgStatus = persistence.getStatus();
   const bStatus = engine.getBreakerStatus();
   return res.json({
     status: 'ok',
@@ -244,9 +245,14 @@ app.get('/api/health', (req: Request, res: Response) => {
         provider: 'MongoDB Atlas v7.0 (WiredTiger)',
         uri: dbStatus.mongoUri || 'MONGODB_URI environment variable'
       },
+      postgresql: {
+        connected: pgStatus.connected,
+        provider: 'Railway PostgreSQL 16 (ACID Relational WAL)',
+        uri: pgStatus.connectionUri || 'DATABASE_URL environment variable'
+      },
       inMemoryEngineFallback: true,
-      asyncPersistenceQueue: dbStatus.queueSize,
-      persistedSequence: dbStatus.persistedSequence
+      asyncPersistenceQueue: dbStatus.queueSize + pgStatus.queueSize,
+      persistedSequence: Math.max(dbStatus.persistedSequence, pgStatus.persistedSequence)
     },
     currentSequence: engine.currentSequence(),
     timestamp: new Date().toISOString()
@@ -305,9 +311,18 @@ app.get('/admin/database-verification', async (req: Request, res: Response) => {
   }
 
   const verification = await multiDb.getVerificationDashboard();
+  const pgStatus = persistence.getStatus();
   return res.json({
     success: true,
-    ...verification
+    ...verification,
+    postgresql: {
+      connected: pgStatus.connected,
+      connectionUriMasked: pgStatus.connectionUri,
+      provider: 'Railway PostgreSQL 16 (ACID Relational WAL)',
+      tableCounts: pgStatus.tables,
+      mode: pgStatus.mode,
+      guarantee: pgStatus.guarantee
+    }
   });
 });
 

@@ -277,7 +277,43 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
       </div>
 
       {/* Database Connection Status Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* PostgreSQL Card */}
+        <div className="glass-panel p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <Database className="w-4 h-4 text-emerald-400" />
+              Railway PostgreSQL 16
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+              verificationData?.postgresql?.connected
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }`}>
+              {verificationData?.postgresql?.connected ? 'Live Connected' : 'In-Memory WAL (ACID)'}
+            </span>
+          </div>
+
+          <div className="space-y-1.5 text-xs text-slate-400 font-mono-numbers">
+            <div className="flex justify-between py-1 border-b border-white/5">
+              <span>Instance:</span>
+              <span className="font-mono text-slate-200">Railway PG 16</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-white/5">
+              <span>Orders Stored:</span>
+              <span className="font-bold text-sky-400">{verificationData?.postgresql?.tableCounts?.orders ?? verificationData?.mysql?.tableCounts?.orders ?? 0}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-white/5">
+              <span>Trades Stored:</span>
+              <span className="font-bold text-emerald-400">{verificationData?.postgresql?.tableCounts?.trades ?? verificationData?.mysql?.tableCounts?.trades ?? 0}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span>Breaker Trips:</span>
+              <span className="font-bold text-rose-400">{verificationData?.postgresql?.tableCounts?.breaker_events ?? verificationData?.mysql?.tableCounts?.circuit_breaker_events ?? 0}</span>
+            </div>
+          </div>
+        </div>
+
         {/* MySQL Card */}
         <div className="glass-panel p-5 space-y-3">
           <div className="flex items-center justify-between">

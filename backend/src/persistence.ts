@@ -29,16 +29,16 @@ export class PersistenceWorker {
   constructor(maxCapacity = 100000) {
     this.maxCapacity = maxCapacity;
 
-    const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    const dbUrl = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (dbUrl) {
       this.initPostgres(dbUrl);
     } else if (process.env.POSTGRES_HOST) {
       this.initPostgres({
         host: process.env.POSTGRES_HOST,
         port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-        database: process.env.POSTGRES_DB || 'orderpulse_mtx',
+        database: process.env.POSTGRES_DB || 'railway',
         user: process.env.POSTGRES_USER || 'postgres',
-        password: process.env.POSTGRES_PASSWORD || 'postgres_password_mtx',
+        password: process.env.POSTGRES_PASSWORD || 'postgres',
       });
     }
   }
