@@ -332,12 +332,38 @@ CREATE TABLE IF NOT EXISTS engine_wal_journal (
           )}
 
           {/* Quick Demo Presets */}
-          <div className="pt-2 border-t border-white/5 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-500 text-[11px]">Free Cloud DB Providers:</span>
-            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 text-[10px]">Neon Serverless Postgres</span>
-            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 text-[10px]">Supabase PostgreSQL</span>
-            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 text-[10px]">Railway Postgres Plugin</span>
-            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 text-[10px]">AWS RDS Aurora</span>
+          <div className="pt-2 border-t border-white/5 space-y-2 text-xs">
+            <span className="text-slate-400 text-[11px] font-semibold">1-Click Database Connection URI Templates:</span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setConnectionUri('postgresql://postgres:postgres_password_mtx@ep-neon-free-pool.ap-southeast-1.aws.neon.tech/orderpulse_mtx?sslmode=require')}
+                className="px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono transition cursor-pointer"
+              >
+                + Neon Serverless Pool
+              </button>
+              <button
+                type="button"
+                onClick={() => setConnectionUri('postgresql://postgres.projectid:secretpassword@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require')}
+                className="px-2.5 py-1 rounded-md bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 text-[11px] font-mono transition cursor-pointer"
+              >
+                + Supabase PostgreSQL
+              </button>
+              <button
+                type="button"
+                onClick={() => setConnectionUri('postgresql://postgres:railway_pass_mtx@postgres.railway.internal:5432/railway')}
+                className="px-2.5 py-1 rounded-md bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 text-[11px] font-mono transition cursor-pointer"
+              >
+                + Railway Postgres
+              </button>
+              <button
+                type="button"
+                onClick={() => setConnectionUri('postgresql://postgres:password@localhost:5432/orderpulse_mtx')}
+                className="px-2.5 py-1 rounded-md bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 text-slate-300 text-[11px] font-mono transition cursor-pointer"
+              >
+                + Localhost:5432
+              </button>
+            </div>
           </div>
         </div>
       </div>
