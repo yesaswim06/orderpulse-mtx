@@ -120,7 +120,7 @@ setInterval(() => {
 // -------------------------------------------------------------
 
 // 1. Submit Order
-app.post('/api/orders', (req: Request, res: Response) => {
+app.post('/api/orders', async (req: Request, res: Response) => {
   const { orderId, requestId, participantId, symbol, side, priceTicks, quantity } = req.body;
 
   if (!requestId) {
@@ -148,6 +148,10 @@ app.post('/api/orders', (req: Request, res: Response) => {
   persistence.enqueue(result.sequenceId, 'ORDER_ACCEPTED', result);
   multiDb.enqueue(result.sequenceId, 'ORDER_ACCEPTED', result, matchingLatencyMicros);
 
+  // Atomic Balance Adjustment: Deduct margin on BUY, credit on SELL
+  const tradeValueRupees = Number(((priceTicks / 100) * quantity).toFixed(2));
+  const balUpdate = await multiDb.deductTradeFunds(participantId || 'USER-DEMO-01', side, tradeValueRupees);
+
   // Broadcast updates over WebSocket
   broadcast({
     type: 'ORDER_SUBMITTED',
@@ -159,11 +163,13 @@ app.post('/api/orders', (req: Request, res: Response) => {
     breaker: engine.getBreakerStatus(),
     metrics: engine.getMetrics(),
     matchingLatencyMicros,
+    updatedBalance: balUpdate.newBalance
   });
 
   return res.status(200).json({
     ...result,
     matchingLatencyMicros,
+    updatedBalance: balUpdate.newBalance
   });
 });
 

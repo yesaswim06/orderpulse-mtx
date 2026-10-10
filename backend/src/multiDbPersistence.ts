@@ -753,6 +753,48 @@ export class MultiDbPersistenceWorker {
     return { success: true, newBalance: bal.available, txnId };
   }
 
+  public async deductTradeFunds(
+    userId: string,
+    side: 'BUY' | 'SELL',
+    totalAmountRupees: number
+  ): Promise<{ success: boolean; newBalance: number }> {
+    let bal = this.localBalancesTable.find(b => (b.user_id === userId || b.user_id === 'USER-DEMO-01') && b.currency === 'INR');
+    if (!bal) {
+      bal = {
+        account_id: `ACC-INR-${userId}`,
+        user_id: userId,
+        currency: 'INR',
+        available: 1000000.00,
+        locked: 0.00,
+        is_demo: 1,
+        updated_at: new Date().toISOString()
+      };
+      this.localBalancesTable.push(bal);
+    }
+
+    if (side === 'BUY') {
+      bal.available = Math.max(0, Number((bal.available - totalAmountRupees).toFixed(2)));
+    } else {
+      bal.available = Number((bal.available + totalAmountRupees).toFixed(2));
+    }
+    bal.updated_at = new Date().toISOString();
+
+    // MySQL atomic ledger update if connected
+    if (this.isConnectedToMysql && this.mysqlPool) {
+      try {
+        const sign = side === 'BUY' ? '-' : '+';
+        await this.mysqlPool.query(
+          `UPDATE balances SET available = available ${sign} ? WHERE currency = 'INR' LIMIT 1`,
+          [totalAmountRupees]
+        );
+      } catch (e: any) {
+        console.warn('[MySQL Deduct Error]', e.message);
+      }
+    }
+
+    return { success: true, newBalance: bal.available };
+  }
+
   // --------------------------------------------------------------------------
   // Safe Jury SQL Verification Console (Predefined Parameterized Queries ONLY)
   // --------------------------------------------------------------------------

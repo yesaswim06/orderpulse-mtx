@@ -71,10 +71,12 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
       if (res.ok && data.success) {
         setOrderResult({
           success: true,
-          message: `${orderType} order for ${quantity} shares of ${stock.symbol} executed successfully!`,
+          message: `${orderType} order for ${quantity} shares of ${stock.symbol} executed successfully! Margin updated.`,
           latency: data.matchingLatencyMicros || 2.15
         });
-        if (onOrderSuccess) onOrderSuccess();
+        if (onOrderSuccess) {
+          onOrderSuccess();
+        }
       } else {
         setOrderResult({
           success: false,
