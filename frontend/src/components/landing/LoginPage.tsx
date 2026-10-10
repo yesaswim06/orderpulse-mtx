@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Zap,
   Lock,
   Mail,
   Eye,
   EyeOff,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Smartphone,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('trader@orderpulse.exchange');
+  const [authMode, setAuthMode] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
+  const [email, setEmail] = useState('aarav.sharma@orderpulse.exchange');
+  const [phone, setPhone] = useState('9876543210');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [password, setPassword] = useState('demo123456');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,12 +26,26 @@ export const LoginPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  const handleSendOtp = () => {
+    if (!phone || phone.length < 10) {
+      setError('Enter a valid 10-digit Indian mobile number');
+      return;
+    }
+    setError(null);
+    setOtpSent(true);
+    setOtp('584291');
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim() || !password) {
+    if (authMode === 'PASSWORD' && (!email.trim() || !password)) {
       setError('Please provide your registered email and password.');
+      return;
+    }
+    if (authMode === 'OTP' && (!phone.trim() || !otp.trim())) {
+      setError('Please enter mobile number and 6-digit OTP.');
       return;
     }
 
@@ -34,126 +54,242 @@ export const LoginPage: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
-      localStorage.setItem('orderpulse_user', JSON.stringify({
+      const user = {
         userId: 'USER-DEMO-01',
-        name: 'Institutional Prop Desk',
-        email,
-        role: 'TRADER',
+        name: authMode === 'PASSWORD' ? 'Aarav Sharma' : 'Mobile Verified Trader',
+        email: authMode === 'PASSWORD' ? email : `${phone}@sms.orderpulse.exchange`,
+        phone: '+91 ' + phone,
+        role: 'PRO_TRADER',
         isDemo: true
-      }));
+      };
+      localStorage.setItem('orderpulse_user', JSON.stringify(user));
+      window.dispatchEvent(new Event('orderpulse_auth_change'));
 
       setTimeout(() => {
-        navigate('/trade');
-      }, 1000);
-    }, 600);
+        navigate('/stocks/user/explore');
+      }, 700);
+    }, 500);
+  };
+
+  const handleQuickDemoLogin = (userType: 'AARAV' | 'PRIYA' | 'INSTITUTIONAL') => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+      const demoUsers = {
+        AARAV: { userId: 'USER-DEMO-01', name: 'Aarav Sharma', email: 'aarav.sharma@orderpulse.exchange', role: 'PRO_TRADER' },
+        PRIYA: { userId: 'USER-IN-02', name: 'Priya Patel', email: 'priya.patel@gujarat-capital.in', role: 'MARKET_MAKER' },
+        INSTITUTIONAL: { userId: 'USER-IN-05', name: 'Vikramaditya Singhania', email: 'vikram.singhania@kolkata-prop.in', role: 'INSTITUTIONAL_DESK' },
+      };
+      localStorage.setItem('orderpulse_user', JSON.stringify(demoUsers[userType]));
+      window.dispatchEvent(new Event('orderpulse_auth_change'));
+
+      setTimeout(() => {
+        navigate('/stocks/user/explore');
+      }, 600);
+    }, 400);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {/* Brand Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <Zap className="w-5 h-5 text-white stroke-[2.4]" />
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-2">
+        <Link to="/" className="inline-flex items-center gap-2 group">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00B386] via-[#00c997] to-[#10b981] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-none stroke-current stroke-2">
+              <path d="M3 12c3-4 6-4 9 0s6 4 9 0" />
+              <path d="M3 7c3-3 6-3 9 0s6 3 9 0" opacity="0.6" />
+              <path d="M3 17c3-3 6-3 9 0s6 3 9 0" opacity="0.6" />
+            </svg>
           </div>
-          <span className="text-2xl font-black text-[#0a192f] tracking-tight">OrderPulse</span>
+          <span className="text-2xl font-black text-[#44475B] dark:text-white tracking-tight">OrderPulse</span>
         </Link>
-        <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-[#0a192f]">
-          Log in to Terminal
+        <h2 className="text-xl font-bold text-[#44475B] dark:text-white">
+          Sign In to Your Account
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Enter credentials to access live continuous order book simulation
+        <p className="text-xs text-[#7C7E8C]">
+          Trade Indian stocks, mutual funds, and live matching simulation
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl shadow-slate-200/50 rounded-3xl border border-slate-100">
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white dark:bg-[#151515] py-8 px-6 sm:px-8 rounded-3xl border border-[#E8E8E8] dark:border-white/10 shadow-sm space-y-5 animate-fade-in">
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-600 font-medium">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-xs text-[#EB5B3C] font-mono">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>Authentication verified. Redirecting to trading terminal...</span>
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 text-xs text-[#00B386] font-mono flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Authentication verified. Loading dashboard...</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Address */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="w-4 h-4" />
+          {/* Auth Mode Tabs */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#F8F8F8] dark:bg-neutral-800 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => { setAuthMode('PASSWORD'); setError(null); }}
+              className={`py-2 rounded-lg transition cursor-pointer ${
+                authMode === 'PASSWORD'
+                  ? 'bg-white dark:bg-neutral-700 text-[#44475B] dark:text-white shadow-xs'
+                  : 'text-[#7C7E8C]'
+              }`}
+            >
+              Email & Password
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('OTP'); setError(null); }}
+              className={`py-2 rounded-lg transition cursor-pointer ${
+                authMode === 'OTP'
+                  ? 'bg-white dark:bg-neutral-700 text-[#44475B] dark:text-white shadow-xs'
+                  : 'text-[#7C7E8C]'
+              }`}
+            >
+              Mobile OTP
+            </button>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4 text-xs font-sans">
+            {authMode === 'PASSWORD' ? (
+              <>
+                <div>
+                  <label className="block font-semibold text-[#44475B] dark:text-neutral-300 mb-1">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#7C7E8C] absolute left-3 top-3 pointer-events-none" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="trader@orderpulse.exchange"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-[#F8F8F8] dark:bg-neutral-800 text-[#44475B] dark:text-white outline-none focus:border-[#00B386]"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 outline-none text-slate-900 transition"
-                  required
-                />
-              </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Password
-                </label>
-                <span className="text-[11px] text-emerald-600 hover:text-emerald-700 cursor-pointer">
-                  Demo Pass: demo123456
-                </span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
+                <div>
+                  <label className="block font-semibold text-[#44475B] dark:text-neutral-300 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#7C7E8C] absolute left-3 top-3 pointer-events-none" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-[#F8F8F8] dark:bg-neutral-800 text-[#44475B] dark:text-white outline-none focus:border-[#00B386]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 outline-none text-slate-900 transition"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block font-semibold text-[#44475B] dark:text-neutral-300 mb-1">
+                    Mobile Number (+91)
+                  </label>
+                  <div className="flex gap-2">
+                    <span className="px-3 py-2.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-[#F8F8F8] dark:bg-neutral-800 text-xs font-mono font-bold text-[#7C7E8C] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="9876543210"
+                      className="flex-1 px-3 py-2.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-[#F8F8F8] dark:bg-neutral-800 text-[#44475B] dark:text-white outline-none focus:border-[#00B386] font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      className="px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] font-bold text-[11px] border border-emerald-500/20 hover:bg-emerald-100 transition cursor-pointer"
+                    >
+                      {otpSent ? 'Resend' : 'Get OTP'}
+                    </button>
+                  </div>
+                </div>
 
-            {/* Quick Demo Credentials Autofill */}
-            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
-              <span>Preset: Prop Desk Trader (Verified)</span>
-              <span className="font-mono font-bold text-emerald-600">DEMO READY</span>
-            </div>
+                {otpSent && (
+                  <div className="animate-fade-in space-y-1">
+                    <label className="block font-semibold text-[#44475B] dark:text-neutral-300 mb-1">
+                      Enter 6-Digit OTP (Simulated: 584291)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      required
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="584291"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#00B386] bg-[#F8F8F8] dark:bg-neutral-800 text-[#44475B] dark:text-white outline-none font-mono text-center tracking-widest font-bold text-sm"
+                    />
+                  </div>
+                )}
+              </>
+            )}
 
-            {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || success}
-              className="w-full py-3 px-4 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/35 hover:-translate-y-0.5 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:scale-[1.01] disabled:opacity-50"
             >
-              <span>{loading ? 'Authenticating...' : 'Sign In to Terminal →'}</span>
+              <span>{loading ? 'Authenticating...' : 'Sign In to OrderPulse'}</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Link to Signup */}
-          <div className="mt-6 text-center text-xs text-slate-500">
-            Don't have an account yet?{' '}
-            <Link to="/signup" className="font-bold text-emerald-600 hover:text-emerald-700">
-              Create an account
-            </Link>
+          {/* Quick 1-Click Demo Profiles */}
+          <div className="pt-4 border-t border-[#F0F0F0] dark:border-white/[0.08] space-y-2">
+            <span className="text-[11px] font-mono text-[#7C7E8C] block text-center">
+              Quick 1-Click Demo Profiles (Jury / Test):
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('AARAV')}
+                className="py-1.5 px-2 rounded-lg border border-[#E8E8E8] dark:border-white/10 text-[10px] font-bold hover:border-[#00B386] hover:text-[#00B386] transition cursor-pointer"
+              >
+                Aarav (Trader)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('PRIYA')}
+                className="py-1.5 px-2 rounded-lg border border-[#E8E8E8] dark:border-white/10 text-[10px] font-bold hover:border-[#00B386] hover:text-[#00B386] transition cursor-pointer"
+              >
+                Priya (Maker)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('INSTITUTIONAL')}
+                className="py-1.5 px-2 rounded-lg border border-[#E8E8E8] dark:border-white/10 text-[10px] font-bold hover:border-[#00B386] hover:text-[#00B386] transition cursor-pointer"
+              >
+                Vikram (Desk)
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center pt-2">
+            <span className="text-xs text-[#7C7E8C]">
+              Don't have an account yet?{' '}
+              <Link to="/signup" className="font-bold text-[#00B386] hover:underline">
+                Register here
+              </Link>
+            </span>
           </div>
         </div>
       </div>

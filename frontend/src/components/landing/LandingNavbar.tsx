@@ -42,7 +42,13 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onOpenDemo }) => {
           </Link>
 
           {/* Center: Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7">
+          <nav className="hidden lg:flex items-center gap-6">
+            <Link
+              to="/dashboard"
+              className="text-sm font-semibold text-slate-700 hover:text-emerald-600 transition"
+            >
+              Dashboard
+            </Link>
             <Link
               to="/stocks/user/explore"
               className="text-sm font-semibold text-[#0a192f] hover:text-emerald-600 transition"
@@ -66,6 +72,18 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onOpenDemo }) => {
               className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
             >
               Bonds
+            </Link>
+            <Link
+              to="/about"
+              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              className="text-sm font-semibold text-slate-600 hover:text-emerald-600 transition"
+            >
+              Contact
             </Link>
             <Link
               to="/trade"
@@ -121,26 +139,40 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onOpenDemo }) => {
             Home
           </Link>
           <Link
+            to="/dashboard"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-slate-700"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/stocks/user/explore"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-slate-700"
+          >
+            Stocks Explore
+          </Link>
+          <Link
+            to="/about"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-slate-700"
+          >
+            About Us
+          </Link>
+          <Link
+            to="/contact"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-slate-700"
+          >
+            Contact Us
+          </Link>
+          <Link
             to="/trade"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-base font-semibold text-emerald-600"
           >
             Trading Terminal
           </Link>
-          <a
-            href="#technology"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-semibold text-slate-600"
-          >
-            Technology
-          </a>
-          <a
-            href="#features"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-semibold text-slate-600"
-          >
-            Features
-          </a>
           <div className="pt-4 flex flex-col gap-2">
             <Link
               to="/login"

@@ -313,8 +313,8 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                 <EmptyState
                   title="You haven't invested yet"
                   description="Start trading with simulated ₹10,00,000 cash balance on live FIFO order matching."
-                  actionText="Trade DEMO Symbol"
-                  onAction={() => navigate('/trade')}
+                  actionText="Explore Stocks & Trade"
+                  onAction={() => setSelectedStock(MOST_BOUGHT_STOCKS[0])}
                 />
               </div>
 

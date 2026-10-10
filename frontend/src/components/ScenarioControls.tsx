@@ -22,18 +22,18 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
   };
 
   return (
-    <div className="glass-panel p-3 mb-4">
+    <div className="bg-white dark:bg-[#141414] border border-neutral-200 dark:border-white/10 rounded-2xl p-3 mb-4 shadow-sm">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="px-2 py-0.5 rounded bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-[10px] font-mono font-bold text-slate-700 dark:text-neutral-300">
+            TEST SUITE
           </div>
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Interactive Scenarios:
+            <span className="text-xs font-bold font-mono text-slate-800 dark:text-neutral-200">
+              Deterministic Matching Scenarios:
             </span>
-            <span className="text-xs text-slate-400 hidden sm:inline ml-2">
-              Execute deterministic simulation scenarios
+            <span className="text-xs text-slate-500 dark:text-neutral-400 hidden sm:inline ml-2">
+              Inject validated exchange test vectors
             </span>
           </div>
         </div>
@@ -43,9 +43,9 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('normal')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-[#00B386] text-xs font-mono font-semibold transition cursor-pointer disabled:opacity-50"
           >
-            <Play className="w-3.5 h-3.5 fill-emerald-400/40" />
+            <Play className="w-3.5 h-3.5 fill-current" />
             <span>1. Normal Match</span>
           </button>
 
@@ -53,7 +53,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('partial_fill')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/40 text-blue-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 text-xs font-mono font-semibold transition cursor-pointer disabled:opacity-50"
           >
             <Layers className="w-3.5 h-3.5" />
             <span>2. Partial Fill</span>
@@ -63,19 +63,19 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('price_shock')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-rose-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-500 text-xs font-mono font-semibold transition cursor-pointer disabled:opacity-50"
           >
-            <Flame className="w-3.5 h-3.5 text-rose-400" />
-            <span>3. Price Shock (Halt)</span>
+            <Flame className="w-3.5 h-3.5" />
+            <span>3. Price Shock (Trip Halt)</span>
           </button>
 
           {/* Scenario 4: Order Burst */}
           <button
             onClick={() => handleRun('burst')}
             disabled={disabled || loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-semibold backdrop-blur-md transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-semibold transition cursor-pointer disabled:opacity-50"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>4. 50-Order Burst</span>
           </button>
 
@@ -83,7 +83,7 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
           <button
             onClick={() => handleRun('reset')}
             disabled={loadingScenario !== null}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-slate-400 hover:text-white text-xs font-medium backdrop-blur-md transition-all cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 text-slate-500 hover:text-black dark:hover:text-white text-xs font-mono font-medium transition cursor-pointer"
             title="Clear and reset engine state"
           >
             <RotateCcw className="w-3.5 h-3.5" />

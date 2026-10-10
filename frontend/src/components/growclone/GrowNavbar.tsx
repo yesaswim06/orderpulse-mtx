@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Search,
   Bell,
@@ -14,7 +14,9 @@ import {
   LogOut,
   ChevronRight,
   TrendingUp,
-  Activity
+  Activity,
+  Info,
+  Mail
 } from 'lucide-react';
 
 interface GrowNavbarProps {
@@ -35,6 +37,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Ctrl+K keyboard shortcut to focus search
   useEffect(() => {
@@ -64,7 +67,8 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isProfileOpen]);
 
-  const isStocks = location.pathname.startsWith('/stocks') || location.pathname === '/';
+  const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/stocks/user/holdings');
+  const isStocks = (location.pathname.startsWith('/stocks') && !location.pathname.startsWith('/stocks/user/holdings')) || location.pathname === '/';
   const isFO = location.pathname.startsWith('/futures-and-options');
   const isMF = location.pathname.startsWith('/mutual-funds');
   const isTerminal = location.pathname.startsWith('/trade');
@@ -95,6 +99,16 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
 
           {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
+            <Link
+              to="/dashboard"
+              className={`transition-colors py-1 ${
+                isDashboard
+                  ? 'text-[#44475B] dark:text-white font-bold border-b-2 border-[#00B386]'
+                  : 'text-[#7C7E8C] dark:text-neutral-400 hover:text-[#44475B] dark:hover:text-white'
+              }`}
+            >
+              Dashboard
+            </Link>
             <Link
               to="/stocks/user/explore"
               className={`transition-colors py-1 ${
@@ -383,6 +397,36 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
                   </Link>
+
+                  {/* Row 6: About Us */}
+                  <Link
+                    to="/about"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/60 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-neutral-800 text-[#7C7E8C] flex items-center justify-center">
+                        <Info className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-sm">About OrderPulse</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
+                  </Link>
+
+                  {/* Row 7: Contact Us */}
+                  <Link
+                    to="/contact"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/60 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-neutral-800 text-[#7C7E8C] flex items-center justify-center">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-sm">Contact Us & FAQ</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
+                  </Link>
                 </div>
 
                 {/* Footer Bar */}
@@ -407,7 +451,13 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
 
                   {/* Log Out */}
                   <button
-                    onClick={() => setIsProfileOpen(false)}
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      localStorage.removeItem('user_authenticated');
+                      localStorage.removeItem('user_name');
+                      localStorage.removeItem('user_email');
+                      navigate('/login');
+                    }}
                     className="text-[#7C7E8C] hover:text-[#EB5B3C] font-semibold border-b border-dotted border-current transition cursor-pointer"
                   >
                     Log out

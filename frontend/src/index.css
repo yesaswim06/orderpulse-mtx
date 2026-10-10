@@ -12,27 +12,17 @@
    ========================================================================= */
 body.theme-light {
   color-scheme: light;
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(224, 231, 255, 0.6) 0%, transparent 60%),
-    radial-gradient(circle 500px at 15% 30%, rgba(241, 245, 249, 0.8) 0%, transparent 70%),
-    radial-gradient(circle 600px at 85% 70%, rgba(226, 232, 240, 0.7) 0%, transparent 70%);
+  background-color: #fafafa;
   color: #0f172a;
 }
 
-/* Dark Theme Variables (Default) */
+/* Dark Theme (Default): Clean, Minimalist Coded Financial Surface */
 body {
   margin: 0;
-  background-color: #060913;
-  background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(28, 56, 120, 0.25) 0%, transparent 60%),
-    radial-gradient(circle 600px at 10% 25%, rgba(14, 116, 144, 0.08) 0%, transparent 70%),
-    radial-gradient(circle 500px at 90% 75%, rgba(99, 102, 241, 0.07) 0%, transparent 70%),
-    radial-gradient(circle 800px at 50% 100%, rgba(2, 6, 23, 0.8) 0%, transparent 100%);
-  background-attachment: fixed;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #0E0E0E;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
-  color: #f1f5f9;
+  color: #e5e7eb;
   letter-spacing: -0.01em;
 }
 

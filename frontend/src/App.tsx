@@ -20,6 +20,8 @@ import { ProfilePage } from './pages/growclone/ProfilePage';
 import { WalletPage } from './pages/growclone/WalletPage';
 import { BondsPage } from './pages/growclone/BondsPage';
 import { DashboardPage } from './pages/growclone/DashboardPage';
+import { AboutPage } from './pages/growclone/AboutPage';
+import { ContactPage } from './pages/growclone/ContactPage';
 import { HoldingsPortfolioView } from './components/growclone/HoldingsPortfolioView';
 
 const AppLayout: React.FC = () => {
@@ -144,7 +146,9 @@ const AppLayout: React.FC = () => {
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/wallet/transactions" element={<WalletPage />} />
         
-        {/* Help & Support */}
+        {/* Help, Support, About & Contact */}
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/help/my-account" element={<HelpMyAccountPage />} />
         

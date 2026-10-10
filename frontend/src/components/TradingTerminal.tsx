@@ -8,7 +8,16 @@ import { DepthChart } from './DepthChart';
 import { TradesTable } from './TradesTable';
 import { OrdersTable } from './OrdersTable';
 import { AdminModal } from './AdminModal';
-import { Navbar } from './Navbar';
+import {
+  TrendingUp,
+  Layers,
+  Zap,
+  Database,
+  FileCode2,
+  ShieldAlert,
+  Settings,
+  Activity
+} from 'lucide-react';
 import { MarketsView } from './MarketsView';
 import { PerformanceView } from './PerformanceView';
 import { DatabaseView } from './DatabaseView';
@@ -287,23 +296,114 @@ export const TradingTerminal: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#060913] text-slate-100' : 'bg-[#f1f5f9] text-slate-900'} flex flex-col font-sans selection:bg-sky-500/30 selection:text-white transition-colors duration-200`}>
-      {/* Premier Frosted Glass Exchange Navbar */}
-      <Navbar
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        breaker={breaker}
-        metrics={metrics}
-        snapshot={snapshot}
-        isConnected={isConnected}
-        backendTarget={backendTarget}
-        onToggleTarget={() => setBackendTarget(prev => prev === 'railway' ? 'local' : 'railway')}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        walletBalance={walletBalance}
-        onOpenWallet={() => setIsWalletOpen(true)}
-      />
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0E0E0E] text-[#E5E7EB]' : 'bg-[#FAFAFA] text-[#44475B]'} flex flex-col font-sans transition-colors duration-200`}>
+      {/* Coded Institutional Terminal Sub-Header */}
+      <div className="bg-white dark:bg-[#141414] border-b border-[#E8E8E8] dark:border-white/10 px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        {/* Terminal Tab Switchers */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          <button
+            onClick={() => setCurrentTab('trade')}
+            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition flex items-center gap-2 cursor-pointer ${
+              currentTab === 'trade'
+                ? 'bg-[#00B386]/10 text-[#00B386] border border-[#00B386]/30'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Order Book Ladder</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('markets')}
+            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition flex items-center gap-2 cursor-pointer ${
+              currentTab === 'markets'
+                ? 'bg-[#00B386]/10 text-[#00B386] border border-[#00B386]/30'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Markets & Specs</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('performance')}
+            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition flex items-center gap-2 cursor-pointer ${
+              currentTab === 'performance'
+                ? 'bg-[#00B386]/10 text-[#00B386] border border-[#00B386]/30'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span>2.1µs Latency Benchmarks</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('database')}
+            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition flex items-center gap-2 cursor-pointer ${
+              currentTab === 'database'
+                ? 'bg-[#00B386]/10 text-[#00B386] border border-[#00B386]/30'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>Dual DB Audit</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('docs')}
+            className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition flex items-center gap-2 cursor-pointer ${
+              currentTab === 'docs'
+                ? 'bg-[#00B386]/10 text-[#00B386] border border-[#00B386]/30'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <FileCode2 className="w-3.5 h-3.5" />
+            <span>API Docs & Jury</span>
+          </button>
+        </div>
+
+        {/* Real-Time Telemetry & Controls */}
+        <div className="flex items-center gap-2.5">
+          {/* WebSocket Engine State */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-[11px] font-mono">
+            <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[#00B386] animate-pulse' : 'bg-rose-500'}`} />
+            <span className="text-slate-700 dark:text-neutral-300 font-medium">
+              {isConnected ? 'LIVE WS' : 'CONNECTING'}
+            </span>
+          </div>
+
+          {/* Breaker State */}
+          <div
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-mono font-bold ${
+              breaker?.state === 'HALTED'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 animate-pulse'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-[#00B386]'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>{breaker?.state || 'RUNNING'}</span>
+          </div>
+
+          {/* Reference Price & Bands */}
+          {breaker && (
+            <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-[11px] font-mono text-slate-600 dark:text-neutral-400">
+              <span>REF: ₹{(breaker.referencePriceTicks / 100).toFixed(2)}</span>
+              <span className="text-slate-400">|</span>
+              <span>BAND: [₹{(breaker.lowerBandTicks / 100).toFixed(2)} - ₹{(breaker.upperBandTicks / 100).toFixed(2)}]</span>
+            </div>
+          )}
+
+          {/* Operator Controls Trigger */}
+          <button
+            onClick={() => setIsAdminOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-200 dark:border-white/10 text-[11px] font-mono font-semibold text-slate-700 dark:text-neutral-300 transition cursor-pointer"
+            title="Open Circuit Breaker & Matching Engine Admin Panel"
+          >
+            <Settings className="w-3.5 h-3.5 text-slate-500" />
+            <span>Operator</span>
+          </button>
+        </div>
+      </div>
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">
         {/* Volatility Circuit Breaker Alert Banner (shown across all tabs if tripped) */}
