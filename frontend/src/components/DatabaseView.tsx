@@ -210,44 +210,50 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
   };
 
   const copySqlSchema = () => {
-    const ddl = `-- OrderPulse MTX: Railway MySQL & MongoDB Atlas Persistence Architecture
+    const ddl = `-- ============================================================================
+-- OrderPulse MTX: PostgreSQL Database Schema (ACID In-Memory Hot-Path WAL)
+-- Compatible with Railway PostgreSQL 16 & Neon PostgreSQL
+-- ============================================================================
+
+-- 1. Users Registry
 CREATE TABLE IF NOT EXISTS users (
   user_id VARCHAR(64) PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
   email VARCHAR(128) NOT NULL,
   role VARCHAR(32) DEFAULT 'TRADER',
   kyc_status VARCHAR(32) DEFAULT 'VERIFIED',
-  is_demo TINYINT(1) DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  is_demo SMALLINT DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
+-- 2. User Cash & Margin Balances
 CREATE TABLE IF NOT EXISTS balances (
   account_id VARCHAR(64) PRIMARY KEY,
   user_id VARCHAR(64) NOT NULL,
   currency VARCHAR(16) NOT NULL,
-  available DECIMAL(18, 4) NOT NULL DEFAULT 0.0000,
-  locked DECIMAL(18, 4) NOT NULL DEFAULT 0.0000,
-  is_demo TINYINT(1) DEFAULT 1,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  available NUMERIC(18, 4) NOT NULL DEFAULT 0.0000,
+  locked NUMERIC(18, 4) NOT NULL DEFAULT 0.0000,
+  is_demo SMALLINT DEFAULT 1,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
+-- 3. Limit & Market Orders (FIFO Price-Time Priority)
 CREATE TABLE IF NOT EXISTS orders (
   order_id VARCHAR(64) PRIMARY KEY,
-  request_id VARCHAR(64) NOT NULL,
+  request_id VARCHAR(64) NOT NULL UNIQUE,
   participant_id VARCHAR(64) NOT NULL,
   symbol VARCHAR(16) NOT NULL,
-  side ENUM('BUY', 'SELL') NOT NULL,
-  price_ticks BIGINT NOT NULL,
-  price_rupees DECIMAL(12, 2) NOT NULL,
-  original_quantity BIGINT NOT NULL,
-  remaining_quantity BIGINT NOT NULL,
+  side VARCHAR(8) NOT NULL CHECK (side IN ('BUY', 'SELL')),
+  price_ticks BIGINT NOT NULL CHECK (price_ticks > 0),
+  original_quantity BIGINT NOT NULL CHECK (original_quantity > 0),
+  remaining_quantity BIGINT NOT NULL CHECK (remaining_quantity >= 0),
   status VARCHAR(32) NOT NULL,
   acceptance_sequence BIGINT NOT NULL,
-  matching_latency_micros DECIMAL(10, 3) DEFAULT 0.000,
-  is_demo TINYINT(1) DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
+-- 4. Matched Trade Fills
 CREATE TABLE IF NOT EXISTS trades (
   trade_id VARCHAR(64) PRIMARY KEY,
   symbol VARCHAR(16) NOT NULL,
@@ -255,29 +261,33 @@ CREATE TABLE IF NOT EXISTS trades (
   taker_order_id VARCHAR(64) NOT NULL,
   maker_participant_id VARCHAR(64) NOT NULL,
   taker_participant_id VARCHAR(64) NOT NULL,
-  price_ticks BIGINT NOT NULL,
-  price_rupees DECIMAL(12, 2) NOT NULL,
-  quantity BIGINT NOT NULL,
-  sequence_id BIGINT NOT NULL,
-  matching_latency_micros DECIMAL(10, 3) DEFAULT 0.000,
-  is_demo TINYINT(1) DEFAULT 1,
-  executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  price_ticks BIGINT NOT NULL CHECK (price_ticks > 0),
+  quantity BIGINT NOT NULL CHECK (quantity > 0),
+  sequence_id BIGINT NOT NULL UNIQUE,
+  executed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-CREATE TABLE IF NOT EXISTS circuit_breaker_events (
-  event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  symbol VARCHAR(16) NOT NULL,
+-- 5. Volatility Circuit Breaker Events (±5% Price Collar Violations)
+CREATE TABLE IF NOT EXISTS breaker_events (
+  id BIGSERIAL PRIMARY KEY,
   event_type VARCHAR(32) NOT NULL,
   reference_price_ticks BIGINT NOT NULL,
-  candidate_price_ticks BIGINT NOT NULL,
+  candidate_price_ticks BIGINT,
   lower_band_ticks BIGINT NOT NULL,
   upper_band_ticks BIGINT NOT NULL,
-  duration_seconds INT NOT NULL DEFAULT 30,
-  reason VARCHAR(255),
+  halt_duration_seconds INT NOT NULL DEFAULT 30,
+  reason TEXT NOT NULL,
   sequence_id BIGINT NOT NULL,
-  is_demo TINYINT(1) DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;`;
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 6. Engine Event Journal (JSONB Write-Ahead Log)
+CREATE TABLE IF NOT EXISTS engine_events (
+  sequence_id BIGINT PRIMARY KEY,
+  event_type VARCHAR(32) NOT NULL,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);`;
     navigator.clipboard.writeText(ddl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -286,28 +296,28 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
   const tables = [
     {
       name: 'orders',
-      count: verificationData?.mysql?.tableCounts?.orders ?? 24,
-      description: 'Persistent limit order records with execution status and matching latency'
+      count: verificationData?.postgresql?.tableCounts?.orders ?? verificationData?.mysql?.tableCounts?.orders ?? 24,
+      description: 'PostgreSQL ACID limit orders with execution status and nanosecond matching sequences'
     },
     {
       name: 'trades',
-      count: verificationData?.mysql?.tableCounts?.trades ?? 12,
-      description: 'Executed trade fills with maker/taker IDs and nanosecond match sequences'
+      count: verificationData?.postgresql?.tableCounts?.trades ?? verificationData?.mysql?.tableCounts?.trades ?? 12,
+      description: 'Executed trade fills with maker/taker identifiers and strict sequence isolation'
     },
     {
       name: 'breaker_events',
-      count: verificationData?.mysql?.tableCounts?.circuit_breaker_events ?? 2,
-      description: 'Volatility circuit breaker halts, reference anchors, and breach prices'
+      count: verificationData?.postgresql?.tableCounts?.breaker_events ?? verificationData?.mysql?.tableCounts?.circuit_breaker_events ?? 2,
+      description: 'Volatility circuit breaker halts, price collars, and reference price resets'
     },
     {
       name: 'balances',
       count: verificationData?.mysql?.tableCounts?.balances ?? 2,
-      description: 'Atomic user ledger balances for INR cash margin and DEMO equity shares'
+      description: 'Atomic user ledger margin balances (INR cash and DEMO shares)'
     },
     {
       name: 'engine_events',
       count: verificationData?.mongodb?.collectionCounts?.engine_audit_log ?? 36,
-      description: 'MongoDB Atlas append-only audit trail for deterministic engine state recovery'
+      description: 'Write-ahead log journal & MongoDB audit trail for complete state recovery'
     }
   ];
 

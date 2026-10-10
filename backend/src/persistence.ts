@@ -84,6 +84,26 @@ export class PersistenceWorker {
 
   private async runMigrations(client: PoolClient) {
     await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id VARCHAR(64) PRIMARY KEY,
+        name VARCHAR(128) NOT NULL,
+        email VARCHAR(128) NOT NULL,
+        role VARCHAR(32) DEFAULT 'TRADER',
+        kyc_status VARCHAR(32) DEFAULT 'VERIFIED',
+        is_demo SMALLINT DEFAULT 1,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS balances (
+        account_id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        currency VARCHAR(16) NOT NULL,
+        available NUMERIC(18, 4) NOT NULL DEFAULT 0.0000,
+        locked NUMERIC(18, 4) NOT NULL DEFAULT 0.0000,
+        is_demo SMALLINT DEFAULT 1,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS engine_events (
         sequence_id BIGINT PRIMARY KEY,
         event_type VARCHAR(32) NOT NULL,
