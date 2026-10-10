@@ -7,12 +7,15 @@ interface TradesTableProps {
 
 export const TradesTable: React.FC<TradesTableProps> = ({ trades }) => {
   return (
-    <div className="glass-panel rounded-2xl p-4 shadow-xl flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-2">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-          Recent Trades (Executed)
-        </h3>
-        <span className="text-xs text-cyan-400 font-mono font-semibold">
+    <div className="glass-panel p-4 flex flex-col h-full">
+      <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08] mb-2">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+            Market Trades (Executed)
+          </h3>
+        </div>
+        <span className="text-[11px] text-slate-400 font-mono">
           {trades.length} Prints
         </span>
       </div>

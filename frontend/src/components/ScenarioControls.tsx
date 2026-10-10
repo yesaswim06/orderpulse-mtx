@@ -22,18 +22,18 @@ export const ScenarioControls: React.FC<ScenarioControlsProps> = ({
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-3.5 mb-4 shadow-lg">
+    <div className="glass-panel p-3 mb-4">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-            <Sparkles className="w-4 h-4" />
+          <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+            <Sparkles className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-white">
-              Interactive Jury Demos:
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              Interactive Scenarios:
             </span>
             <span className="text-xs text-slate-400 hidden sm:inline ml-2">
-              Execute key simulation scenarios with one click
+              Execute deterministic simulation scenarios
             </span>
           </div>
         </div>

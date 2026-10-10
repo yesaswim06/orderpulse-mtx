@@ -6,7 +6,6 @@ import { ScenarioControls } from './components/ScenarioControls';
 import { OrderForm } from './components/OrderForm';
 import { OrderBookView } from './components/OrderBookView';
 import { DepthChart } from './components/DepthChart';
-import { PriceHistoryChart } from './components/PriceHistoryChart';
 import { TradesTable } from './components/TradesTable';
 import { OrdersTable } from './components/OrdersTable';
 import { AdminModal } from './components/AdminModal';
@@ -296,9 +295,9 @@ export const App: React.FC = () => {
             {/* Real-Time Metrics & Microsecond Latency Bar */}
             <MetricsBar metrics={metrics} />
 
-            {/* Main Trading Terminal Layout */}
+            {/* Main Trading Terminal Layout: Professional Institutional Exchange Grid */}
             <div className="grid grid-cols-12 gap-4 flex-1">
-              {/* Left Column: Order Form */}
+              {/* Left Column (3 cols): Order Entry Pad & Contract Summary */}
               <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
                 <OrderForm breaker={breaker} onSubmitOrder={handleSubmitOrder} />
                 <div className="glass-panel p-4 text-xs text-slate-400 space-y-2">
@@ -315,17 +314,16 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Center Column: Order Book & Depth Chart */}
+              {/* Center Column (5 cols): Institutional Level 2 Order Book Ladder */}
               <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
                 <div className="flex-1">
                   <OrderBookView snapshot={snapshot} />
                 </div>
-                <DepthChart snapshot={snapshot} />
               </div>
 
-              {/* Right Column: Price Timeline Chart & Recent Trades */}
+              {/* Right Column (4 cols): Market Depth Visualizer & Real-Time Executions */}
               <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-                <PriceHistoryChart trades={trades} breaker={breaker} />
+                <DepthChart snapshot={snapshot} />
                 <div className="flex-1">
                   <TradesTable trades={trades} />
                 </div>

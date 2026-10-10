@@ -28,15 +28,15 @@ export const OrderBookView: React.FC<OrderBookViewProps> = ({ snapshot }) => {
   const displayBids = snapshot.bids.slice(0, 10);
 
   return (
-    <div className="glass-panel rounded-2xl p-4 flex flex-col h-full shadow-xl">
+    <div className="glass-panel p-4 flex flex-col h-full">
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <span>Order Book</span>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">DEMO/INR</span>
+        <h2 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+          <span>Order Book L2</span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">DEMO/INR</span>
         </h2>
         <div className="text-xs text-slate-400 flex items-center gap-3">
-          <span>Best Bid: <strong className="text-emerald-400 font-mono-numbers">₹{bestBidRs}</strong></span>
-          <span>Best Ask: <strong className="text-rose-400 font-mono-numbers">₹{bestAskRs}</strong></span>
+          <span>Bid: <strong className="text-emerald-400 font-mono-numbers">₹{bestBidRs}</strong></span>
+          <span>Ask: <strong className="text-rose-400 font-mono-numbers">₹{bestAskRs}</strong></span>
         </div>
       </div>
 
@@ -81,11 +81,11 @@ export const OrderBookView: React.FC<OrderBookViewProps> = ({ snapshot }) => {
         </div>
 
         {/* Spread Separator */}
-        <div className="py-2.5 my-1.5 px-3 bg-white/[0.02] border-y border-white/[0.08] backdrop-blur-md rounded-lg flex items-center justify-between text-xs font-mono-numbers shadow-inner">
+        <div className="py-2 my-1 px-3 bg-white/[0.03] border-y border-white/[0.08] backdrop-blur-md rounded-lg flex items-center justify-between text-xs font-mono-numbers">
           <div className="flex items-center gap-1.5 text-slate-300">
             <span className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Spread:</span>
-            <span className="font-bold text-white">₹{spreadRs}</span>
-            <span className="text-cyan-400 text-[11px]">({spreadTicks} ticks)</span>
+            <span className="font-bold text-slate-100">₹{spreadRs}</span>
+            <span className="text-sky-400 text-[11px]">({spreadTicks} ticks)</span>
           </div>
           <div className="text-[11px] text-slate-400 font-medium">
             {snapshot.bestBidTicks && snapshot.bestAskTicks ? 'Market Open' : 'Waiting Liquidity'}

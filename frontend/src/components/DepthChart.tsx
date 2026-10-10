@@ -112,17 +112,17 @@ export const DepthChart: React.FC<DepthChartProps> = ({ snapshot }) => {
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-4 shadow-xl flex flex-col">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-          Market Depth Curve (Apache ECharts)
+    <div className="glass-panel p-4 flex flex-col">
+      <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/[0.06]">
+        <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          <span>Market Depth Liquidity Curve</span>
         </h3>
         <div className="flex items-center gap-3 text-[11px]">
           <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <span className="w-2.5 h-1 bg-emerald-500 inline-block rounded-full shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span> Cumulative Bids
+            <span className="w-2 h-1 bg-emerald-400 inline-block rounded-full"></span> Bids Depth
           </span>
           <span className="flex items-center gap-1.5 text-rose-400 font-medium">
-            <span className="w-2.5 h-1 bg-rose-500 inline-block rounded-full shadow-[0_0_6px_rgba(244,63,94,0.8)]"></span> Cumulative Asks
+            <span className="w-2 h-1 bg-rose-400 inline-block rounded-full"></span> Asks Depth
           </span>
         </div>
       </div>

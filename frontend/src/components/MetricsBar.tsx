@@ -25,14 +25,14 @@ export const MetricsBar: React.FC<MetricsBarProps> = ({ metrics }) => {
       </div>
 
       {/* Trades Executed */}
-      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-cyan-500/30 transition-all shadow-sm">
+      <div className="glass-card rounded-2xl p-3 flex flex-col justify-between hover:border-sky-500/30 transition-all shadow-sm">
         <div className="flex items-center justify-between text-slate-400 text-xs">
           <span className="font-medium text-slate-300">Trades</span>
-          <div className="p-1 rounded-lg bg-cyan-500/10 text-cyan-400">
+          <div className="p-1 rounded-lg bg-sky-500/10 text-sky-400">
             <TrendingUp className="w-3.5 h-3.5" />
           </div>
         </div>
-        <div className="text-xl font-bold font-mono-numbers text-cyan-400 mt-2">
+        <div className="text-xl font-bold font-mono-numbers text-sky-400 mt-2">
           {metrics.totalTradesExecuted.toLocaleString()}
         </div>
       </div>
