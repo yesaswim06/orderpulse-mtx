@@ -69,19 +69,46 @@ export class MultiDbPersistenceWorker {
   private initDemoSeed() {
     this.localUsersTable = [
       {
-        user_id: 'USER-DEMO-01',
-        name: 'Institutional Prop Desk',
-        email: 'prop@orderpulse.exchange',
-        role: 'TRADER',
+        user_id: 'USER-IN-01',
+        name: 'Aarav Sharma',
+        email: 'aarav.sharma@mumbai-algo.in',
+        role: 'PRO_TRADER',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
       },
       {
-        user_id: 'USER-DEMO-02',
-        name: 'HFT Market Maker Alpha',
-        email: 'hft@orderpulse.exchange',
+        user_id: 'USER-IN-02',
+        name: 'Priya Patel',
+        email: 'priya.patel@gujarat-capital.in',
         role: 'MARKET_MAKER',
+        kyc_status: 'VERIFIED',
+        is_demo: 1,
+        created_at: new Date().toISOString()
+      },
+      {
+        user_id: 'USER-IN-03',
+        name: 'Rohan Verma',
+        email: 'rohan.verma@delhi-hft.in',
+        role: 'HFT_OPERATOR',
+        kyc_status: 'VERIFIED',
+        is_demo: 1,
+        created_at: new Date().toISOString()
+      },
+      {
+        user_id: 'USER-IN-04',
+        name: 'Ananya Iyer',
+        email: 'ananya.iyer@chennai-investments.in',
+        role: 'RETAIL_TRADER',
+        kyc_status: 'VERIFIED',
+        is_demo: 1,
+        created_at: new Date().toISOString()
+      },
+      {
+        user_id: 'USER-IN-05',
+        name: 'Vikramaditya Singhania',
+        email: 'vikram.singhania@kolkata-prop.in',
+        role: 'INSTITUTIONAL_DESK',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -90,20 +117,52 @@ export class MultiDbPersistenceWorker {
 
     this.localBalancesTable = [
       {
-        account_id: 'ACC-INR-01',
-        user_id: 'USER-DEMO-01',
+        account_id: 'ACC-INR-AARAV',
+        user_id: 'USER-IN-01',
+        name: 'Aarav Sharma',
         currency: 'INR',
-        available: 1000000.00,
+        available: 1250000.00,
+        locked: 50000.00,
+        is_demo: 1,
+        updated_at: new Date().toISOString()
+      },
+      {
+        account_id: 'ACC-INR-PRIYA',
+        user_id: 'USER-IN-02',
+        name: 'Priya Patel',
+        currency: 'INR',
+        available: 2500000.00,
+        locked: 120000.00,
+        is_demo: 1,
+        updated_at: new Date().toISOString()
+      },
+      {
+        account_id: 'ACC-INR-ROHAN',
+        user_id: 'USER-IN-03',
+        name: 'Rohan Verma',
+        currency: 'INR',
+        available: 840000.00,
         locked: 0.00,
         is_demo: 1,
         updated_at: new Date().toISOString()
       },
       {
-        account_id: 'ACC-DEMO-01',
-        user_id: 'USER-DEMO-01',
-        currency: 'DEMO',
-        available: 5000,
-        locked: 0,
+        account_id: 'ACC-INR-ANANYA',
+        user_id: 'USER-IN-04',
+        name: 'Ananya Iyer',
+        currency: 'INR',
+        available: 450000.00,
+        locked: 25000.00,
+        is_demo: 1,
+        updated_at: new Date().toISOString()
+      },
+      {
+        account_id: 'ACC-INR-VIKRAM',
+        user_id: 'USER-IN-05',
+        name: 'Vikramaditya Singhania',
+        currency: 'INR',
+        available: 5000000.00,
+        locked: 350000.00,
         is_demo: 1,
         updated_at: new Date().toISOString()
       }

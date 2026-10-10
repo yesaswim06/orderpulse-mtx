@@ -399,7 +399,15 @@ app.get('/api/database/query', async (req: Request, res: Response) => {
 app.post('/api/database/seed', async (req: Request, res: Response) => {
   try {
     const { count = 10 } = req.body;
-    const participants = ['HFT_CITADEL', 'RETAIL_TRADER_1', 'ALGO_DESK_MUMBAI', 'JANE_STREET_DEMO', 'PROP_DESK_01'];
+    const participants = [
+      'AARAV_SHARMA_MUMBAI',
+      'PRIYA_PATEL_AHMEDABAD',
+      'ROHAN_VERMA_DELHI',
+      'ANANYA_IYER_BANGALORE',
+      'VIKRAM_SINGHANIA_KOLKATA',
+      'RAJESH_GUPTA_JAIPUR',
+      'SNEHA_REDDY_HYDERABAD'
+    ];
     const seededOrders = [];
     const seededTrades = [];
 
@@ -410,8 +418,8 @@ app.post('/api/database/seed', async (req: Request, res: Response) => {
       const priceTicks = side === 'BUY' ? 10000 - offset : 10000 + offset;
       const qty = 50 + (i * 10);
       const participant = participants[i % participants.length];
-      const ordId = `SEED-${side}-${Date.now()}-${i}`;
-      const reqId = `REQ-SEED-${side}-${Date.now()}-${i}`;
+      const ordId = `ORD-IN-${side}-${Date.now()}-${i}`;
+      const reqId = `REQ-IN-${side}-${Date.now()}-${i}`;
 
       const resOrder = engine.submitOrder(ordId, reqId, participant, 'DEMO', side, priceTicks, qty);
       if (resOrder.success) {
@@ -421,13 +429,30 @@ app.post('/api/database/seed', async (req: Request, res: Response) => {
       }
     }
 
-    // 2. Generate a guaranteed matching trade
-    const makerRes = engine.submitOrder(`MAKER-${Date.now()}`, `REQ-MKR-${Date.now()}`, 'PROP_DESK_01', 'DEMO', 'SELL', 10000, 100);
+    // 2. Generate guaranteed matching trades between Indian traders
+    const makerRes = engine.submitOrder(
+      `MAKER-AARAV-${Date.now()}`,
+      `REQ-MKR-${Date.now()}`,
+      'AARAV_SHARMA_MUMBAI',
+      'DEMO',
+      'SELL',
+      10000,
+      100
+    );
     if (makerRes.success) {
       persistence.enqueue(makerRes.sequenceId, 'ORDER_ACCEPTED', makerRes);
       multiDb.enqueue(makerRes.sequenceId, 'ORDER_ACCEPTED', makerRes, 1.85);
     }
-    const takerRes = engine.submitOrder(`TAKER-${Date.now()}`, `REQ-TKR-${Date.now()}`, 'RETAIL_TRADER_1', 'DEMO', 'BUY', 10000, 100);
+
+    const takerRes = engine.submitOrder(
+      `TAKER-PRIYA-${Date.now()}`,
+      `REQ-TKR-${Date.now()}`,
+      'PRIYA_PATEL_AHMEDABAD',
+      'DEMO',
+      'BUY',
+      10000,
+      100
+    );
     if (takerRes.success) {
       persistence.enqueue(takerRes.sequenceId, 'ORDER_ACCEPTED', takerRes);
       multiDb.enqueue(takerRes.sequenceId, 'ORDER_ACCEPTED', takerRes, 2.45);
@@ -436,8 +461,9 @@ app.post('/api/database/seed', async (req: Request, res: Response) => {
       }
     }
 
-    // 3. Deposit money into user wallet to record balance transactions
-    await multiDb.addFunds('USER-DEMO-01', 50000, 'UPI', { upiId: 'trader@okhdfcbank', note: 'Seed Capital' });
+    // 3. Deposit money into Indian trader user wallets
+    await multiDb.addFunds('USER-IN-01', 125000, 'UPI', { upiId: 'aarav.sharma@okhdfcbank', note: 'Margin Deposit' });
+    await multiDb.addFunds('USER-IN-02', 250000, 'NETBANKING', { bank: 'State Bank of India', note: 'Equity Collateral' });
 
     broadcastFullState();
 
@@ -675,14 +701,14 @@ function seedInitialBook() {
   ];
 
   seedBids.forEach((b, idx) => {
-    const res = engine.submitOrder(`INIT-BID-${idx}`, `REQ-INIT-B-${idx}`, 'SEED_MM_BID', 'DEMO', 'BUY', b.p, b.q);
+    const res = engine.submitOrder(`INIT-BID-${idx}`, `REQ-INIT-B-${idx}`, 'KOTAK_SECURITIES_MM', 'DEMO', 'BUY', b.p, b.q);
     if (res.success) {
       persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
       multiDb.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res, 2.15);
     }
   });
   seedAsks.forEach((a, idx) => {
-    const res = engine.submitOrder(`INIT-ASK-${idx}`, `REQ-INIT-A-${idx}`, 'SEED_MM_ASK', 'DEMO', 'SELL', a.p, a.q);
+    const res = engine.submitOrder(`INIT-ASK-${idx}`, `REQ-INIT-A-${idx}`, 'MOTILAL_OSWAL_MM', 'DEMO', 'SELL', a.p, a.q);
     if (res.success) {
       persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
       multiDb.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res, 2.15);
