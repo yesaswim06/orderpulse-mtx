@@ -618,6 +618,13 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
           <span>1-Click Presets:</span>
           <button
             type="button"
+            onClick={() => setConnectionUri('postgresql://postgres:PASSWORD@iriguchi.proxy.rlwy.net:14053/railway')}
+            className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-500 text-emerald-300 font-mono"
+          >
+            + Railway PostgreSQL (iriguchi.proxy.rlwy.net)
+          </button>
+          <button
+            type="button"
             onClick={() => setConnectionUri('mysql://root:railway_pass_mtx@viaduct.proxy.rlwy.net:3306/orderpulse_mtx')}
             className="px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:border-sky-500/30 text-slate-300 font-mono"
           >
@@ -625,10 +632,10 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
           </button>
           <button
             type="button"
-            onClick={() => setConnectionUri('mongodb+srv://admin:pass@cluster0.abcde.mongodb.net/orderpulse_mtx?retryWrites=true&w=majority')}
+            onClick={() => setConnectionUri('mongodb+srv://tarunkumarn999_db_user:6SP8GlN78VaHFJ6O@cluster0.rsvp3vb.mongodb.net/orderpulse_mtx?retryWrites=true&w=majority&appName=Cluster0')}
             className="px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:border-emerald-500/30 text-slate-300 font-mono"
           >
-            + MongoDB Atlas Template
+            + MongoDB Atlas Cluster0
           </button>
         </div>
       </div>
