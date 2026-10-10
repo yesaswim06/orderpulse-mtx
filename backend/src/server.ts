@@ -326,7 +326,7 @@ app.get('/admin/database-verification', async (req: Request, res: Response) => {
   });
 });
 
-// 13. Safe Jury SQL Verification Console (Predefined Parameterized Queries ONLY)
+// 13. Safe Jury SQL Verification Console (Predefined Parameterized Queries ONLY on PostgreSQL)
 app.post('/api/admin/jury-query', async (req: Request, res: Response) => {
   const { queryKey, limit } = req.body;
   const token = (req.headers['x-admin-token'] as string) || req.body.token;
@@ -338,7 +338,8 @@ app.post('/api/admin/jury-query', async (req: Request, res: Response) => {
     });
   }
 
-  const result = await multiDb.executeJuryQuery(queryKey || 'LATEST_ORDERS', { limit });
+  // Execute directly on PostgreSQL (with fallback to multiDb if required)
+  const result = await persistence.executePostgresJuryQuery(queryKey || 'LATEST_ORDERS', { limit });
   return res.json(result);
 });
 
@@ -677,12 +678,14 @@ function seedInitialBook() {
     const res = engine.submitOrder(`INIT-BID-${idx}`, `REQ-INIT-B-${idx}`, 'SEED_MM_BID', 'DEMO', 'BUY', b.p, b.q);
     if (res.success) {
       persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
+      multiDb.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res, 2.15);
     }
   });
   seedAsks.forEach((a, idx) => {
     const res = engine.submitOrder(`INIT-ASK-${idx}`, `REQ-INIT-A-${idx}`, 'SEED_MM_ASK', 'DEMO', 'SELL', a.p, a.q);
     if (res.success) {
       persistence.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res);
+      multiDb.enqueue(res.sequenceId, 'ORDER_ACCEPTED', res, 2.15);
     }
   });
 }
