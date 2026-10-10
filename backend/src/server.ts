@@ -1,6 +1,14 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import http from 'http';
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Ensure live MongoDB Atlas connection string is active by default
+if (!process.env.MONGODB_URI) {
+  process.env.MONGODB_URI = 'mongodb+srv://tarunkumarn999_db_user:6SP8GlN78VaHFJ6O@cluster0.rsvp3vb.mongodb.net/orderpulse_mtx?retryWrites=true&w=majority&appName=Cluster0';
+}
+
 import { WebSocketServer, WebSocket } from 'ws';
 import { MatchingEngine } from './matchingEngine';
 import { PersistenceWorker } from './persistence';

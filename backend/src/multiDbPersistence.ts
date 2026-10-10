@@ -1,5 +1,7 @@
 import mysql from 'mysql2/promise';
 import { MongoClient, Db, Collection } from 'mongodb';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export interface JournalRecord {
   sequenceId: number;
@@ -57,7 +59,8 @@ export class MultiDbPersistenceWorker {
       this.initMysql(mysqlUrl).catch(e => console.warn('[MySQL AutoConnect Error]', e.message));
     }
 
-    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL;
+    const defaultMongo = 'mongodb+srv://tarunkumarn999_db_user:6SP8GlN78VaHFJ6O@cluster0.rsvp3vb.mongodb.net/orderpulse_mtx?retryWrites=true&w=majority&appName=Cluster0';
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URL || defaultMongo;
     if (mongoUri) {
       this.initMongo(mongoUri).catch(e => console.warn('[Mongo AutoConnect Error]', e.message));
     }
