@@ -78,13 +78,15 @@ export const FOExplorePage: React.FC = () => {
               {/* 3x2 Grid of Top Traded F&O Contracts */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {FO_TOP_TRADED.map((card) => (
-                  <div
+                  <Link
                     key={card.id}
-                    className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer"
+                    to="/trade"
+                    className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-[#00B386]/50 transition-all flex flex-col justify-between cursor-pointer group"
+                    title={`Open ${card.symbol} in Matching Terminal`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-xs text-[#44475B] dark:text-white">
+                        <span className="font-bold text-xs text-[#44475B] dark:text-white group-hover:text-[#00B386] transition-colors">
                           {card.symbol}
                         </span>
                         <span className="text-[10px] text-[#7C7E8C]">Fut</span>
@@ -121,11 +123,11 @@ export const FOExplorePage: React.FC = () => {
                       </div>
 
                       {/* Circular link icon button */}
-                      <div className="w-7 h-7 rounded-full border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center text-[#7C7E8C] hover:text-[#00B386] hover:border-[#00B386] transition">
+                      <div className="w-7 h-7 rounded-full border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center text-[#7C7E8C] group-hover:text-[#00B386] group-hover:border-[#00B386] transition">
                         <ExternalLink className="w-3.5 h-3.5" />
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </section>

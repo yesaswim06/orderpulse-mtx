@@ -173,10 +173,11 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                   {POPULAR_BONDS.map((bond) => (
                     <div
                       key={bond.id}
-                      className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group cursor-pointer"
+                      onClick={() => navigate('/bonds')}
+                      className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-[#00B386]/50 transition-all group cursor-pointer"
                     >
                       {/* Logo square */}
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-neutral-800 border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center font-bold text-xs text-[#44475B] dark:text-neutral-200 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-neutral-800 border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center font-bold text-xs text-[#44475B] dark:text-neutral-200 mb-3 group-hover:scale-105 transition-transform">
                         {bond.logo}
                       </div>
 

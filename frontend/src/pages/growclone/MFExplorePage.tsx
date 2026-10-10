@@ -48,16 +48,18 @@ export const MFExplorePage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {POPULAR_FUNDS.map((fund) => (
-                  <div
+                  <Link
                     key={fund.id}
-                    className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer"
+                    to="/mutual-funds/dashboard"
+                    className="bg-white dark:bg-[#151515] border border-[#E8E8E8] dark:border-white/10 rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 hover:border-[#00B386]/50 transition-all flex flex-col justify-between cursor-pointer group"
+                    title={`View ${fund.name} performance dashboard`}
                   >
                     <div>
                       {/* Fund logo */}
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 font-bold text-xs flex items-center justify-center mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 font-bold text-xs flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
                         {fund.logo}
                       </div>
-                      <h3 className="font-bold text-xs text-[#44475B] dark:text-white line-clamp-2 mb-1 leading-snug">
+                      <h3 className="font-bold text-xs text-[#44475B] dark:text-white line-clamp-2 mb-1 leading-snug group-hover:text-[#00B386] transition-colors">
                         {fund.name}
                       </h3>
                       <span className="text-[10px] text-[#7C7E8C] block mb-3">{fund.category}</span>
@@ -74,7 +76,7 @@ export const MFExplorePage: React.FC = () => {
                         3Y
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
 
@@ -167,15 +169,16 @@ export const MFExplorePage: React.FC = () => {
                 <h3 className="font-bold text-sm text-[#44475B] dark:text-white">
                   Your Investments
                 </h3>
-                <span className="text-xs font-bold text-[#00B386] hover:underline cursor-pointer">
-                  Dashboard
-                </span>
+                <Link to="/stocks/user/holdings" className="text-xs font-bold text-[#00B386] hover:underline cursor-pointer">
+                  Holdings
+                </Link>
               </div>
 
               <EmptyState
                 title="No active SIPs found"
                 description="Start automated investing in top-performing index and equity funds with zero commission."
-                actionText="Explore SIPs"
+                actionText="Explore Portfolio"
+                onAction={() => window.location.href = '/stocks/user/holdings'}
               />
             </div>
 
@@ -186,7 +189,10 @@ export const MFExplorePage: React.FC = () => {
               </h3>
 
               <div className="divide-y divide-[#F0F0F0] dark:divide-white/[0.06] text-xs">
-                <div className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer">
+                <Link
+                  to="/mutual-funds/dashboard"
+                  className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-[#00B386] flex items-center justify-center">
                       <Flame className="w-4 h-4 text-[#00B386]" />
@@ -199,37 +205,46 @@ export const MFExplorePage: React.FC = () => {
                     </span>
                     <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
                   </div>
-                </div>
+                </Link>
 
-                <div className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer">
+                <Link
+                  to="/trade"
+                  className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-600 flex items-center justify-center">
                       <Sparkles className="w-4 h-4" />
                     </div>
-                    <span className="font-medium text-[#44475B] dark:text-neutral-200">Import funds</span>
+                    <span className="font-medium text-[#44475B] dark:text-neutral-200">Continuous Engine</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
-                </div>
+                </Link>
 
-                <div className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer">
+                <Link
+                  to="/stocks/user/orders"
+                  className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-600 flex items-center justify-center">
                       <FileCheck className="w-4 h-4" />
                     </div>
-                    <span className="font-medium text-[#44475B] dark:text-neutral-200">File tax</span>
+                    <span className="font-medium text-[#44475B] dark:text-neutral-200">Audit Reports</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
-                </div>
+                </Link>
 
-                <div className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer">
+                <Link
+                  to="/bonds"
+                  className="py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/40 px-2 rounded-xl transition cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/30 text-purple-600 flex items-center justify-center">
                       <Scale className="w-4 h-4" />
                     </div>
-                    <span className="font-medium text-[#44475B] dark:text-neutral-200">Compare funds</span>
+                    <span className="font-medium text-[#44475B] dark:text-neutral-200">Compare with Bonds</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
-                </div>
+                </Link>
               </div>
             </div>
           </div>
