@@ -8,16 +8,15 @@
 
 body {
   margin: 0;
-  background-color: #060913;
+  background-color: #080c14;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.10) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.08) 0px, transparent 50%);
+    radial-gradient(at 15% 10%, rgba(30, 58, 138, 0.18) 0px, transparent 45%),
+    radial-gradient(at 85% 15%, rgba(67, 56, 202, 0.12) 0px, transparent 40%),
+    radial-gradient(at 50% 90%, rgba(15, 23, 42, 0.6) 0px, transparent 60%);
   background-attachment: fixed;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
-  color: #f1f5f9;
+  color: #e2e8f0;
 }
 
 .font-mono-numbers {
@@ -25,84 +24,89 @@ body {
   font-feature-settings: 'tnum' on, 'zero' on;
 }
 
-/* Glassmorphism Classes */
+/* Genuine Frosted Glassmorphism (Subtle, Clean, Premium - No Neon) */
 .glass-panel {
-  background: rgba(13, 20, 36, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .glass-panel:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .glass-card {
-  background: rgba(17, 24, 43, 0.45);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .glass-input {
-  background: rgba(7, 11, 22, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: rgba(10, 15, 29, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #f8fafc;
+  transition: all 0.15s ease-in-out;
 }
 
 .glass-input:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  border-color: rgba(56, 189, 248, 0.6);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
 }
 
 .glass-button {
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: all 0.15s ease-in-out;
 }
 
 .glass-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-0.5px);
 }
 
-/* Custom sleek scrollbar */
+/* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(10, 15, 29, 0.5);
+  background: rgba(15, 23, 42, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.2);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.5);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Pulse animation for halted indicator */
-@keyframes pulse-intense {
+/* Tasteful warning pulse */
+@keyframes soft-pulse {
   0%, 100% {
     opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+    border-color: rgba(244, 63, 94, 0.6);
   }
   50% {
-    opacity: 0.9;
-    transform: scale(1.008);
-    box-shadow: 0 0 35px rgba(239, 68, 68, 0.7);
+    opacity: 0.88;
+    border-color: rgba(244, 63, 94, 0.9);
   }
 }
 
-.animate-halt-pulse {
-  animation: pulse-intense 1.8s infinite ease-in-out;
+.animate-breaker-halt {
+  animation: soft-pulse 2s infinite ease-in-out;
 }

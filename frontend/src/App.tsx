@@ -10,7 +10,11 @@ import { PriceHistoryChart } from './components/PriceHistoryChart';
 import { TradesTable } from './components/TradesTable';
 import { OrdersTable } from './components/OrdersTable';
 import { AdminModal } from './components/AdminModal';
-import { DatabaseInspectorModal } from './components/DatabaseInspectorModal';
+import { Navbar } from './components/Navbar';
+import { MarketsView } from './components/MarketsView';
+import { PerformanceView } from './components/PerformanceView';
+import { DatabaseView } from './components/DatabaseView';
+import { DocsView } from './components/DocsView';
 import {
   BreakerStatus,
   EngineMetrics,
@@ -21,6 +25,7 @@ import {
 } from './types';
 
 export const App: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<'trade' | 'markets' | 'performance' | 'database' | 'docs'>('trade');
   const [snapshot, setSnapshot] = useState<OrderBookSnapshot | null>(null);
   const [breaker, setBreaker] = useState<BreakerStatus | null>(null);
   const [metrics, setMetrics] = useState<EngineMetrics | null>(null);
@@ -257,78 +262,111 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] text-slate-100 flex flex-col font-sans">
-      {/* Top Header */}
-      <Header
+    <div className="min-h-screen bg-[#080d1a] text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-white">
+      {/* Premier Frosted Glass Exchange Navbar */}
+      <Navbar
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
         breaker={breaker}
         metrics={metrics}
+        snapshot={snapshot}
         isConnected={isConnected}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenDatabase={() => setIsDbInspectorOpen(true)}
         backendTarget={backendTarget}
         onToggleTarget={() => setBackendTarget(prev => prev === 'railway' ? 'local' : 'railway')}
+        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">
-        {/* Volatility Circuit Breaker Banner */}
+        {/* Volatility Circuit Breaker Alert Banner (shown across all tabs if tripped) */}
         <CircuitBreakerBanner
           breaker={breaker}
           onResume={() => handleResume('demo-admin-secret-mtx-2026')}
           onOpenAdmin={() => setIsAdminOpen(true)}
         />
 
-        {/* 4 Hackathon Interactive Demo Controls */}
-        <ScenarioControls
-          onTriggerScenario={handleTriggerScenario}
-          disabled={!isConnected}
-        />
+        {/* Tab 1: Live Trading Terminal */}
+        {currentTab === 'trade' && (
+          <div className="flex flex-col gap-4">
+            {/* 4 Hackathon Interactive Demo Controls */}
+            <ScenarioControls
+              onTriggerScenario={handleTriggerScenario}
+              disabled={!isConnected}
+            />
 
-        {/* Real-Time Metrics & Microsecond Latency Bar */}
-        <MetricsBar metrics={metrics} />
+            {/* Real-Time Metrics & Microsecond Latency Bar */}
+            <MetricsBar metrics={metrics} />
 
-        {/* Main Trading Terminal Layout */}
-        <div className="grid grid-cols-12 gap-4 flex-1">
-          {/* Left Column: Order Form */}
-          <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
-            <OrderForm breaker={breaker} onSubmitOrder={handleSubmitOrder} />
-            <div className="bg-trading-card border border-trading-border rounded-xl p-3.5 text-xs text-slate-400 space-y-2">
-              <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">
-                Matching Mechanics
-              </h4>
-              <ul className="space-y-1 text-[11px] list-disc list-inside text-slate-400">
-                <li>Price-Time Priority (FIFO queues)</li>
-                <li>Resting order price determines execution</li>
-                <li>Candidate trades pre-verified against ±5% band</li>
-                <li>Violations trip 30s halt cooldown</li>
-              </ul>
+            {/* Main Trading Terminal Layout */}
+            <div className="grid grid-cols-12 gap-4 flex-1">
+              {/* Left Column: Order Form */}
+              <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
+                <OrderForm breaker={breaker} onSubmitOrder={handleSubmitOrder} />
+                <div className="glass-panel p-4 text-xs text-slate-400 space-y-2">
+                  <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px] flex items-center justify-between">
+                    <span>Matching Mechanics</span>
+                    <span className="text-[10px] text-sky-400 font-mono">C++20 FIFO</span>
+                  </h4>
+                  <ul className="space-y-1.5 text-[11px] list-disc list-inside text-slate-400">
+                    <li>Price-Time Priority (FIFO queues)</li>
+                    <li>Resting order price determines execution</li>
+                    <li>Candidate trades pre-verified against ±5% band</li>
+                    <li>Violations trip 30s halt cooldown</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Center Column: Order Book & Depth Chart */}
+              <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+                <div className="flex-1">
+                  <OrderBookView snapshot={snapshot} />
+                </div>
+                <DepthChart snapshot={snapshot} />
+              </div>
+
+              {/* Right Column: Price Timeline Chart & Recent Trades */}
+              <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
+                <PriceHistoryChart trades={trades} breaker={breaker} />
+                <div className="flex-1">
+                  <TradesTable trades={trades} />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Section: Orders Activity & Cancellations */}
+            <div className="mt-1">
+              <OrdersTable
+                orders={orders}
+                onCancelOrder={handleCancelOrder}
+                cancellingId={cancellingId}
+              />
             </div>
           </div>
+        )}
 
-          {/* Center Column: Order Book & Depth Chart */}
-          <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
-            <div className="flex-1">
-              <OrderBookView snapshot={snapshot} />
-            </div>
-            <DepthChart snapshot={snapshot} />
-          </div>
+        {/* Tab 2: Markets & Instrument Specifications */}
+        {currentTab === 'markets' && (
+          <MarketsView breaker={breaker} snapshot={snapshot} />
+        )}
 
-          {/* Right Column: Price Timeline Chart & Recent Trades */}
-          <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-            <PriceHistoryChart trades={trades} breaker={breaker} />
-            <div className="flex-1">
-              <TradesTable trades={trades} />
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Section: Orders Activity & Cancellations */}
-        <div className="mt-4">
-          <OrdersTable
-            orders={orders}
-            onCancelOrder={handleCancelOrder}
-            cancellingId={cancellingId}
+        {/* Tab 3: Microsecond Latency Performance & Benchmarks */}
+        {currentTab === 'performance' && (
+          <PerformanceView
+            metrics={metrics}
+            onRunBurst={async () => {
+              await handleTriggerScenario('BURST_VOLUME');
+            }}
           />
-        </div>
+        )}
+
+        {/* Tab 4: Live PostgreSQL Database Explorer & WAL Journal */}
+        {currentTab === 'database' && (
+          <DatabaseView apiBase={apiBase} />
+        )}
+
+        {/* Tab 5: Interactive API Docs & Jury Demonstration Walkthrough */}
+        {currentTab === 'docs' && (
+          <DocsView apiBase={apiBase} />
+        )}
       </main>
 
       {/* Operator Admin Modal */}
@@ -338,12 +376,6 @@ export const App: React.FC = () => {
         breaker={breaker}
         onResume={handleResume}
         onResetReference={handleResetReference}
-      />
-
-      {/* Database Inspector Modal */}
-      <DatabaseInspectorModal
-        isOpen={isDbInspectorOpen}
-        onClose={() => setIsDbInspectorOpen(false)}
       />
     </div>
   );
