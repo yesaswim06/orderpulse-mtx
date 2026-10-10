@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Globe, TrendingUp, TrendingDown } from 'lucide-react';
 import { TICKER_DATA } from '../../data/growcloneData';
 
@@ -8,7 +9,12 @@ export const IndexTickerStrip: React.FC = () => {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-2 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-6 sm:gap-8 shrink-0 font-mono text-xs">
           {TICKER_DATA.map((item) => (
-            <div key={item.name} className="flex items-center gap-2">
+            <Link
+              key={item.name}
+              to={item.name.includes('DEMO') ? '/trade' : '/futures-and-options/user/explore'}
+              className="flex items-center gap-2 hover:opacity-80 transition cursor-pointer"
+              title={`View ${item.name} charts and contracts`}
+            >
               <span className="font-semibold text-[#44475B] dark:text-[#E5E7EB] font-sans">
                 {item.name}
               </span>
@@ -28,17 +34,18 @@ export const IndexTickerStrip: React.FC = () => {
                 <span>{item.change}</span>
                 <span className="opacity-90">({item.percent})</span>
               </span>
-            </div>
+            </Link>
           ))}
         </div>
 
-        {/* Globe icon button */}
-        <button
+        {/* Globe icon button linking to terminal */}
+        <Link
+          to="/trade"
           className="shrink-0 p-1.5 rounded-full hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 text-[#7C7E8C] transition"
-          title="Global Markets"
+          title="Global Markets & Matching Terminal"
         >
           <Globe className="w-4 h-4" />
-        </button>
+        </Link>
       </div>
     </div>
   );

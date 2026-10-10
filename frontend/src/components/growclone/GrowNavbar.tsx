@@ -148,13 +148,86 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search OrderPulse (e.g. Tata, Nifty, DEMO)..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const query = searchQuery.trim().toLowerCase();
+                  if (query) {
+                    setSearchQuery('');
+                    if (query.includes('demo') || query.includes('order')) {
+                      window.location.href = '/trade';
+                    } else if (query.includes('bond')) {
+                      window.location.href = '/bonds';
+                    } else if (query.includes('fund') || query.includes('mf')) {
+                      window.location.href = '/mutual-funds/user/explore';
+                    } else if (query.includes('option') || query.includes('nifty') || query.includes('fno')) {
+                      window.location.href = '/futures-and-options/user/explore';
+                    } else {
+                      window.location.href = '/stocks/user/explore';
+                    }
+                  }
+                }
+              }}
+              placeholder="Search OrderPulse (e.g. Tata, Nifty, DEMO, Bonds)..."
               className="w-full pl-9 pr-14 py-2 text-xs rounded-full bg-[#F8F8F8] dark:bg-neutral-800 border border-[#E8E8E8] dark:border-white/10 text-[#44475B] dark:text-white focus:bg-white dark:focus:bg-neutral-900 focus:border-[#00B386] focus:outline-none transition"
             />
             <span className="absolute right-3 text-[10px] font-mono text-[#7C7E8C] bg-white dark:bg-neutral-700 px-1.5 py-0.5 rounded border border-[#E8E8E8] dark:border-white/10 pointer-events-none">
               Ctrl+K
             </span>
           </div>
+
+          {/* Live Search Results Dropdown */}
+          {searchQuery.trim().length > 0 && (
+            <div className="absolute left-0 right-0 top-11 bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-2xl border border-[#E8E8E8] dark:border-white/10 z-50 overflow-hidden divide-y divide-slate-100 dark:divide-white/5 text-xs animate-fade-in">
+              <Link
+                to="/trade"
+                onClick={() => setSearchQuery('')}
+                className="p-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] font-bold text-[10px]">
+                    EQUITY
+                  </span>
+                  <div>
+                    <span className="font-bold text-[#44475B] dark:text-white">DEMO</span>
+                    <span className="text-[#7C7E8C] ml-2 font-normal">OrderPulse Continuous Auction</span>
+                  </div>
+                </div>
+                <span className="text-[#00B386] font-bold font-mono">₹100.00</span>
+              </Link>
+              <Link
+                to="/bonds"
+                onClick={() => setSearchQuery('')}
+                className="p-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 font-bold text-[10px]">
+                    BOND
+                  </span>
+                  <div>
+                    <span className="font-bold text-[#44475B] dark:text-white">Akara Capital Advisors</span>
+                    <span className="text-[#7C7E8C] ml-2 font-normal">14.00% Yield</span>
+                  </div>
+                </div>
+                <span className="text-[#00B386] font-bold font-mono">14.00%</span>
+              </Link>
+              <Link
+                to="/futures-and-options/user/explore"
+                onClick={() => setSearchQuery('')}
+                className="p-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 font-bold text-[10px]">
+                    F&O
+                  </span>
+                  <div>
+                    <span className="font-bold text-[#44475B] dark:text-white">NIFTY 24,800 CE</span>
+                    <span className="text-[#7C7E8C] ml-2 font-normal">Weekly Index Option</span>
+                  </div>
+                </div>
+                <span className="text-[#00B386] font-bold font-mono">₹156.40</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Right: Wallet Balance, Notifications & Profile Avatar */}
@@ -191,31 +264,33 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
             {isProfileOpen && (
               <div className="absolute right-0 top-12 w-[340px] sm:w-[380px] bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-2xl border border-[#E8E8E8] dark:border-white/10 z-50 overflow-hidden animate-fade-in text-[#44475B] dark:text-[#E5E7EB]">
                 {/* Header */}
-                <div className="p-4 border-b border-[#E8E8E8] dark:border-white/10 flex items-center justify-between">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsProfileOpen(false)}
+                  className="p-4 border-b border-[#E8E8E8] dark:border-white/10 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-neutral-800/40 transition"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#00B386]/15 text-[#00B386] font-extrabold flex items-center justify-center text-sm">
                       DU
                     </div>
                     <div>
                       <h4 className="font-bold text-sm text-[#44475B] dark:text-white leading-tight">
-                        Demo User
+                        Aarav Sharma
                       </h4>
-                      <p className="text-xs text-[#7C7E8C]">demo.user@example.com</p>
+                      <p className="text-xs text-[#7C7E8C]">aarav.sharma@orderpulse.exchange</p>
                     </div>
                   </div>
-                  <button className="text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white p-1 rounded-lg">
+                  <div className="text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white p-1 rounded-lg">
                     <Settings className="w-4 h-4" />
-                  </button>
-                </div>
+                  </div>
+                </Link>
 
                 {/* Rows */}
                 <div className="py-2 text-xs">
                   {/* Row 1: Balance */}
-                  <button
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      onOpenWallet();
-                    }}
+                  <Link
+                    to="/wallet"
+                    onClick={() => setIsProfileOpen(false)}
                     className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/60 transition cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
@@ -226,17 +301,17 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                         <div className="font-bold text-sm text-[#44475B] dark:text-white font-mono">
                           ₹{walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </div>
-                        <span className="text-[11px] text-[#7C7E8C]">Stocks, F&O balance</span>
+                        <span className="text-[11px] text-[#7C7E8C]">Stocks, F&O wallet balance</span>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-[#00B386] flex items-center">
                       Deposit <ChevronRight className="w-3.5 h-3.5" />
                     </span>
-                  </button>
+                  </Link>
 
                   {/* Row 2: All Orders */}
                   <Link
-                    to="/trade"
+                    to="/stocks/user/orders"
                     onClick={() => setIsProfileOpen(false)}
                     className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#F8F8F8] dark:hover:bg-neutral-800/60 transition cursor-pointer"
                   >
@@ -244,7 +319,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                       <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-neutral-800 text-[#7C7E8C] flex items-center justify-center">
                         <ListOrdered className="w-4 h-4" />
                       </div>
-                      <span className="font-medium text-sm">All Orders & Terminal</span>
+                      <span className="font-medium text-sm">All Orders History</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
                   </Link>
@@ -279,7 +354,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                     <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
                   </Link>
 
-                  {/* Row 5: Reports */}
+                  {/* Row 5: Reports & Terminal */}
                   <Link
                     to="/trade"
                     onClick={() => setIsProfileOpen(false)}
@@ -289,7 +364,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                       <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-neutral-800 text-[#7C7E8C] flex items-center justify-center">
                         <FileText className="w-4 h-4" />
                       </div>
-                      <span className="font-medium text-sm">Reports & Audit Logs</span>
+                      <span className="font-medium text-sm">Matching Terminal & Audit</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#7C7E8C]" />
                   </Link>

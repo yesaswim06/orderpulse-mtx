@@ -1,23 +1,46 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BarChart2, ShoppingCart, Activity } from 'lucide-react';
 
 interface SubNavProps {
   type: 'stocks' | 'fo' | 'mf';
   activeTab: string;
-  onSelectTab: (tab: string) => void;
+  onSelectTab?: (tab: string) => void;
 }
 
 export const SubNav: React.FC<SubNavProps> = ({ type, activeTab, onSelectTab }) => {
-  let tabs: string[] = [];
+  const navigate = useNavigate();
+  let tabs: { name: string; route: string }[] = [];
 
   if (type === 'stocks') {
-    tabs = ['Explore', 'Holdings', 'Positions', 'Orders', 'Watchlist'];
+    tabs = [
+      { name: 'Explore', route: '/stocks/user/explore' },
+      { name: 'Holdings', route: '/stocks/user/holdings' },
+      { name: 'Positions', route: '/stocks/user/positions' },
+      { name: 'Orders', route: '/stocks/user/orders' },
+      { name: 'Watchlist', route: '/stocks/user/watchlist' },
+    ];
   } else if (type === 'fo') {
-    tabs = ['Explore', 'Positions', 'Orders'];
+    tabs = [
+      { name: 'Explore', route: '/futures-and-options/user/explore' },
+      { name: 'Positions', route: '/stocks/user/positions' },
+      { name: 'Orders', route: '/stocks/user/orders' },
+    ];
   } else if (type === 'mf') {
-    tabs = ['Explore', 'Dashboard', 'SIPs', 'Watchlist'];
+    tabs = [
+      { name: 'Explore', route: '/mutual-funds/user/explore' },
+      { name: 'Dashboard', route: '/mutual-funds/dashboard' },
+      { name: 'SIPs', route: '/mutual-funds/user/explore' },
+      { name: 'Watchlist', route: '/stocks/user/watchlist' },
+    ];
   }
+
+  const handleTabClick = (t: { name: string; route: string }) => {
+    if (onSelectTab) {
+      onSelectTab(t.name);
+    }
+    navigate(t.route);
+  };
 
   return (
     <div className="w-full bg-white dark:bg-[#121212] border-b border-[#E8E8E8] dark:border-white/10 transition-colors">
@@ -25,18 +48,18 @@ export const SubNav: React.FC<SubNavProps> = ({ type, activeTab, onSelectTab }) 
         {/* Sub-nav Tabs */}
         <div className="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
           {tabs.map((tab) => {
-            const isActive = activeTab.toLowerCase() === tab.toLowerCase();
+            const isActive = activeTab.toLowerCase() === tab.name.toLowerCase();
             return (
               <button
-                key={tab}
-                onClick={() => onSelectTab(tab)}
+                key={tab.name}
+                onClick={() => handleTabClick(tab)}
                 className={`py-3.5 text-xs sm:text-sm font-semibold relative transition-colors whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'text-[#00B386] font-bold'
                     : 'text-[#7C7E8C] dark:text-neutral-400 hover:text-[#44475B] dark:hover:text-white'
                 }`}
               >
-                <span>{tab}</span>
+                <span>{tab.name}</span>
                 {isActive && (
                   <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00B386] rounded-t-full" />
                 )}
