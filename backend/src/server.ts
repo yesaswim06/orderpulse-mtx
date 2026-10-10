@@ -349,14 +349,42 @@ app.get('/api/database/status', (req: Request, res: Response) => {
 
 app.get('/api/database/records', async (req: Request, res: Response) => {
   const records = await persistence.getDatabaseRecords();
-  return res.json(records);
+  const multiDashboard = await multiDb.getVerificationDashboard();
+  
+  // Combine records to provide full view across PostgreSQL, MySQL and MongoDB
+  const combinedTables = {
+    ...records.tables,
+    balances: multiDashboard.liveData?.userBalances || [],
+    mongo_audit: multiDashboard.liveData?.latestMongoAudits || []
+  };
+
+  return res.json({
+    ...records,
+    tables: combinedTables
+  });
 });
 
 app.get('/api/database/query', async (req: Request, res: Response) => {
   const table = (req.query.table as string) || 'orders';
   const limit = Math.min(parseInt(req.query.limit as string || '50', 10), 100);
   const records = await persistence.getDatabaseRecords();
-  const rows = (records.tables as any)?.[table] || [];
+  const multiDashboard = await multiDb.getVerificationDashboard();
+
+  let rows: any[] = [];
+  if (table === 'balances') {
+    rows = multiDashboard.liveData?.userBalances || [];
+  } else if (table === 'orders') {
+    rows = (records.tables as any)?.orders || multiDashboard.liveData?.latestOrders || [];
+  } else if (table === 'trades') {
+    rows = (records.tables as any)?.trades || multiDashboard.liveData?.latestTrades || [];
+  } else if (table === 'breaker_events') {
+    rows = (records.tables as any)?.breaker_events || multiDashboard.liveData?.latestBreakerEvents || [];
+  } else if (table === 'engine_events') {
+    rows = (records.tables as any)?.engine_events || multiDashboard.liveData?.latestMongoAudits || [];
+  } else {
+    rows = (records.tables as any)?.[table] || [];
+  }
+
   return res.json({
     table,
     source: records.source,
@@ -364,6 +392,64 @@ app.get('/api/database/query', async (req: Request, res: Response) => {
     rowCount: rows.length,
     rows: rows.slice(0, limit),
   });
+});
+
+// Direct Seed & Write Endpoint to populate database with realistic data
+app.post('/api/database/seed', async (req: Request, res: Response) => {
+  try {
+    const { count = 10 } = req.body;
+    const participants = ['HFT_CITADEL', 'RETAIL_TRADER_1', 'ALGO_DESK_MUMBAI', 'JANE_STREET_DEMO', 'PROP_DESK_01'];
+    const seededOrders = [];
+    const seededTrades = [];
+
+    // 1. Submit resting buy & sell orders
+    for (let i = 0; i < Math.max(2, count); i++) {
+      const side = i % 2 === 0 ? 'BUY' : 'SELL';
+      const offset = (i + 1) * 20; // 20 paisa steps
+      const priceTicks = side === 'BUY' ? 10000 - offset : 10000 + offset;
+      const qty = 50 + (i * 10);
+      const participant = participants[i % participants.length];
+      const ordId = `SEED-${side}-${Date.now()}-${i}`;
+      const reqId = `REQ-SEED-${side}-${Date.now()}-${i}`;
+
+      const resOrder = engine.submitOrder(ordId, reqId, participant, 'DEMO', side, priceTicks, qty);
+      if (resOrder.success) {
+        persistence.enqueue(resOrder.sequenceId, 'ORDER_ACCEPTED', resOrder);
+        multiDb.enqueue(resOrder.sequenceId, 'ORDER_ACCEPTED', resOrder, 2.15);
+        seededOrders.push(resOrder.order);
+      }
+    }
+
+    // 2. Generate a guaranteed matching trade
+    const makerRes = engine.submitOrder(`MAKER-${Date.now()}`, `REQ-MKR-${Date.now()}`, 'PROP_DESK_01', 'DEMO', 'SELL', 10000, 100);
+    if (makerRes.success) {
+      persistence.enqueue(makerRes.sequenceId, 'ORDER_ACCEPTED', makerRes);
+      multiDb.enqueue(makerRes.sequenceId, 'ORDER_ACCEPTED', makerRes, 1.85);
+    }
+    const takerRes = engine.submitOrder(`TAKER-${Date.now()}`, `REQ-TKR-${Date.now()}`, 'RETAIL_TRADER_1', 'DEMO', 'BUY', 10000, 100);
+    if (takerRes.success) {
+      persistence.enqueue(takerRes.sequenceId, 'ORDER_ACCEPTED', takerRes);
+      multiDb.enqueue(takerRes.sequenceId, 'ORDER_ACCEPTED', takerRes, 2.45);
+      if (takerRes.generatedTrades) {
+        seededTrades.push(...takerRes.generatedTrades);
+      }
+    }
+
+    // 3. Deposit money into user wallet to record balance transactions
+    await multiDb.addFunds('USER-DEMO-01', 50000, 'UPI', { upiId: 'trader@okhdfcbank', note: 'Seed Capital' });
+
+    broadcastFullState();
+
+    return res.json({
+      success: true,
+      message: `Successfully wrote seed records to Database (PostgreSQL / MySQL / MongoDB / WAL Engine)!`,
+      ordersSeeded: seededOrders.length + 2,
+      tradesSeeded: seededTrades.length,
+      currentSequence: engine.currentSequence()
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.post('/api/database/connect', async (req: Request, res: Response) => {

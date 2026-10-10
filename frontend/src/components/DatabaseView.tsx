@@ -133,6 +133,82 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
     }
   };
 
+  // Direct Data Seeding & Writing State
+  const [seeding, setSeeding] = useState<boolean>(false);
+  const [seedSuccessMsg, setSeedSuccessMsg] = useState<string | null>(null);
+
+  // Manual Write Form State
+  const [showInsertModal, setShowInsertModal] = useState<boolean>(false);
+  const [insertSide, setInsertSide] = useState<'BUY' | 'SELL'>('BUY');
+  const [insertPrice, setInsertPrice] = useState<string>('100.00');
+  const [insertQty, setInsertQty] = useState<string>('50');
+  const [insertParticipant, setInsertParticipant] = useState<string>('JURY_MANUAL_TRADER');
+  const [submittingOrder, setSubmittingOrder] = useState<boolean>(false);
+
+  // Seed Live Data into Database
+  const handleSeedDatabase = async () => {
+    setSeeding(true);
+    setSeedSuccessMsg(null);
+    try {
+      const res = await fetch(`${apiBase}/api/database/seed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 10 })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSeedSuccessMsg(`Successfully wrote ${data.ordersSeeded} orders and ${data.tradesSeeded} trades to database!`);
+        fetchVerification();
+        fetchTableData(selectedTable);
+        handleRunJuryQuery();
+      }
+    } catch (e: any) {
+      console.error('Failed to seed database', e);
+    } finally {
+      setSeeding(false);
+      setTimeout(() => setSeedSuccessMsg(null), 6000);
+    }
+  };
+
+  // Submit Manual Custom Record directly to Engine & Database
+  const handleInsertRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingOrder(true);
+    try {
+      const priceTicks = Math.round(parseFloat(insertPrice) * 100);
+      const qty = parseInt(insertQty, 10);
+      const orderId = `MANUAL-${insertSide}-${Date.now()}`;
+      const requestId = `REQ-MANUAL-${Date.now()}`;
+
+      const res = await fetch(`${apiBase}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          requestId,
+          participantId: insertParticipant,
+          symbol: 'DEMO',
+          side: insertSide,
+          priceTicks,
+          quantity: qty
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSeedSuccessMsg(`Order ${orderId} submitted & persisted to database successfully!`);
+        setShowInsertModal(false);
+        fetchVerification();
+        fetchTableData(selectedTable);
+        handleRunJuryQuery();
+      }
+    } catch (e: any) {
+      console.error('Failed to write record', e);
+    } finally {
+      setSubmittingOrder(false);
+      setTimeout(() => setSeedSuccessMsg(null), 5000);
+    }
+  };
+
   const copySqlSchema = () => {
     const ddl = `-- OrderPulse MTX: Railway MySQL & MongoDB Atlas Persistence Architecture
 CREATE TABLE IF NOT EXISTS users (
@@ -258,13 +334,28 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleSeedDatabase}
+            disabled={seeding}
+            className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-500/20"
+          >
+            <Play className={`w-3.5 h-3.5 ${seeding ? 'animate-spin' : ''}`} />
+            <span>{seeding ? 'Writing Records...' : 'Populate / Seed DB'}</span>
+          </button>
+          <button
+            onClick={() => setShowInsertModal(true)}
+            className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer border border-white/15"
+          >
+            <Layers className="w-3.5 h-3.5 text-sky-400" />
+            <span>+ Write New Order</span>
+          </button>
           <button
             onClick={copySqlSchema}
             className="glass-button text-xs flex items-center gap-1.5 py-2 px-3 cursor-pointer"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-            <span>{copied ? 'Copied DDL' : 'Copy MySQL DDL'}</span>
+            <span>{copied ? 'Copied DDL' : 'Copy DDL'}</span>
           </button>
           <button
             onClick={() => { fetchVerification(); fetchTableData(selectedTable); }}
@@ -275,6 +366,16 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
           </button>
         </div>
       </div>
+
+      {seedSuccessMsg && (
+        <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>{seedSuccessMsg}</span>
+          </div>
+          <span className="text-[10px] font-mono text-emerald-400">Database Synchronized</span>
+        </div>
+      )}
 
       {/* Database Connection Status Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -637,6 +738,119 @@ CREATE TABLE IF NOT EXISTS circuit_breaker_events (
           )}
         </div>
       </div>
+
+      {/* Manual Insert Order Modal */}
+      {showInsertModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="glass-panel w-full max-w-md p-6 space-y-4 border-emerald-500/40 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <Database className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Write Record to Database</h3>
+                  <p className="text-[11px] text-slate-400">Submits to Matching Engine & Persists across WAL / DB</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInsertModal(false)}
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleInsertRecord} className="space-y-3.5">
+              <div>
+                <label className="text-[11px] font-medium text-slate-300 block mb-1">Order Side</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInsertSide('BUY')}
+                    className={`py-2 text-xs font-bold rounded-lg border transition cursor-pointer ${
+                      insertSide === 'BUY'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+                    }`}
+                  >
+                    BUY (Bid)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInsertSide('SELL')}
+                    className={`py-2 text-xs font-bold rounded-lg border transition cursor-pointer ${
+                      insertSide === 'SELL'
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-sm'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+                    }`}
+                  >
+                    SELL (Ask)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-slate-300 block mb-1">Price (₹ INR)</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="1"
+                  value={insertPrice}
+                  onChange={(e) => setInsertPrice(e.target.value)}
+                  className="glass-input w-full py-2 px-3 text-xs font-mono"
+                  placeholder="100.00"
+                  required
+                />
+                <span className="text-[10px] text-slate-400 mt-1 block">Circuit breaker bounds: ₹95.00 – ₹105.00</span>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-slate-300 block mb-1">Quantity (Shares)</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={insertQty}
+                  onChange={(e) => setInsertQty(e.target.value)}
+                  className="glass-input w-full py-2 px-3 text-xs font-mono"
+                  placeholder="50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-slate-300 block mb-1">Participant / Trader ID</label>
+                <input
+                  type="text"
+                  value={insertParticipant}
+                  onChange={(e) => setInsertParticipant(e.target.value)}
+                  className="glass-input w-full py-2 px-3 text-xs font-mono"
+                  placeholder="JURY_PROP_DESK"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowInsertModal(false)}
+                  className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingOrder}
+                  className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  {submittingOrder ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                  <span>{submittingOrder ? 'Persisting...' : 'Submit & Write to DB'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
