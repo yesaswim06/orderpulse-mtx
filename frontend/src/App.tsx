@@ -12,6 +12,14 @@ import { SignupPage } from './components/landing/SignupPage';
 import { LoginPage } from './components/landing/LoginPage';
 import { WalletModal } from './components/WalletModal';
 
+import { LandingPage } from './components/landing/LandingPage';
+import { PositionsPage } from './pages/growclone/PositionsPage';
+import { OrdersPage } from './pages/growclone/OrdersPage';
+import { WatchlistPage } from './pages/growclone/WatchlistPage';
+import { ProfilePage } from './pages/growclone/ProfilePage';
+import { WalletPage } from './pages/growclone/WalletPage';
+import { HoldingsPortfolioView } from './components/growclone/HoldingsPortfolioView';
+
 const AppLayout: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('growclone_theme') as 'light' | 'dark') || 'light';
@@ -52,13 +60,12 @@ const AppLayout: React.FC = () => {
     fetchWalletBalance();
   }, [fetchWalletBalance]);
 
-  // Hide GrowNavbar on raw /trade terminal if terminal has its own institutional header,
-  // or show it for consistent navigation
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
+  // Hide GrowNavbar on pure landing page and auth routes
+  const isMinimalRoute = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0E0E0E] text-[#E5E7EB]' : 'bg-white text-[#44475B]'} font-sans transition-colors`}>
-      {!isAuthRoute && (
+      {!isMinimalRoute && (
         <GrowNavbar
           theme={theme}
           onToggleTheme={toggleTheme}
@@ -68,10 +75,10 @@ const AppLayout: React.FC = () => {
       )}
 
       <Routes>
-        {/* Redirect / to /stocks/user/explore */}
-        <Route path="/" element={<Navigate to="/stocks/user/explore" replace />} />
+        {/* Marketing Landing Page */}
+        <Route path="/" element={<LandingPage />} />
         
-        {/* SCREEN 1: Stocks Explore */}
+        {/* Stocks Routes */}
         <Route
           path="/stocks/user/explore"
           element={
@@ -82,24 +89,43 @@ const AppLayout: React.FC = () => {
             />
           }
         />
+        <Route
+          path="/stocks/user/holdings"
+          element={
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
+              <HoldingsPortfolioView
+                walletBalance={walletBalance}
+                onOpenWallet={() => setIsWalletOpen(true)}
+              />
+            </div>
+          }
+        />
+        <Route path="/stocks/user/positions" element={<PositionsPage />} />
+        <Route path="/stocks/user/orders" element={<OrdersPage />} />
+        <Route path="/stocks/user/watchlist" element={<WatchlistPage />} />
         
-        {/* SCREEN 2: F&O Explore */}
+        {/* F&O & Mutual Funds */}
         <Route path="/futures-and-options/user/explore" element={<FOExplorePage />} />
-        
-        {/* SCREEN 3: Mutual Funds Explore */}
+        <Route path="/fno" element={<FOExplorePage />} />
         <Route path="/mutual-funds/user/explore" element={<MFExplorePage />} />
+        <Route path="/mutual-funds" element={<MFExplorePage />} />
         
-        {/* SCREEN 5: Bank Account Details & Autopay */}
+        {/* Bank & Autopay */}
         <Route path="/user/bank-autopay" element={<BankAutopayPage />} />
         
-        {/* SCREEN 6: Customer Support FAQs */}
-        <Route path="/help" element={<HelpPage />} />
+        {/* Profile & Wallet */}
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/wallet/transactions" element={<WalletPage />} />
         
-        {/* SCREEN 7: Customer Support > My Account */}
+        {/* Help & Support */}
+        <Route path="/help" element={<HelpPage />} />
         <Route path="/help/my-account" element={<HelpMyAccountPage />} />
         
         {/* MTX OrderPulse C++ Matching Engine Terminal */}
         <Route path="/trade" element={<TradingTerminal />} />
+        <Route path="/admin" element={<TradingTerminal />} />
+        <Route path="/admin/jury" element={<TradingTerminal />} />
         
         {/* Auth Routes */}
         <Route path="/signup" element={<SignupPage />} />

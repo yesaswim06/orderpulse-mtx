@@ -73,35 +73,87 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
               setSelectedStock(match);
             }}
           />
-        ) : activeTab !== 'Explore' ? (
-          /* Placeholder for Positions/Orders/Watchlist tabs */
-          <div className="py-12 bg-white dark:bg-[#151515] rounded-2xl border border-[#E8E8E8] dark:border-white/10 p-8 text-center max-w-xl mx-auto shadow-sm">
-            <h3 className="text-base font-bold text-[#44475B] dark:text-white mb-2">
-              {activeTab} Management
-            </h3>
-            <p className="text-xs text-[#7C7E8C] mb-6">
-              Track your live portfolio, view execution fills from the OrderPulse C++ matching engine, or place new orders.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setActiveTab('Explore')}
-                className="px-4 py-2 rounded-full border border-[#E8E8E8] dark:border-white/10 text-xs font-semibold hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 cursor-pointer"
-              >
-                Back to Explore
-              </button>
-              <button
-                onClick={() => setActiveTab('Holdings')}
-                className="px-4 py-2 rounded-full border border-[#00B386] text-[#00B386] text-xs font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
-              >
-                View Portfolio
-              </button>
-              <Link
-                to="/trade"
-                className="px-5 py-2 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer"
-              >
-                <Activity className="w-3.5 h-3.5" />
-                <span>Open Matching Terminal</span>
+        ) : activeTab === 'Positions' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-[#44475B] dark:text-white">Active Positions (MIS & CNC)</h2>
+              <Link to="/stocks/user/positions" className="text-xs font-bold text-[#00B386] hover:underline">
+                Full Positions Screen →
               </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#141414] border border-[#E8E8E8] dark:border-white/10 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-sm text-[#44475B] dark:text-white">DEMO • Intraday (MIS)</div>
+                  <div className="text-xs text-[#7C7E8C]">50 Qty @ ₹99.50 avg • LTP ₹100.00</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold font-mono text-[#00B386]">+₹25.00 (+0.50%)</div>
+                  <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] px-2 py-0.5 rounded font-bold">PROFIT</span>
+                </div>
+              </div>
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#141414] border border-[#E8E8E8] dark:border-white/10 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-sm text-[#44475B] dark:text-white">TATASTEEL • Intraday (MIS)</div>
+                  <div className="text-xs text-[#7C7E8C]">100 Qty @ ₹174.20 avg • LTP ₹173.80</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold font-mono text-[#00B386]">+₹40.00 (+0.23%)</div>
+                  <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] px-2 py-0.5 rounded font-bold">PROFIT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'Orders' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-[#44475B] dark:text-white">Recent Execution Orders</h2>
+              <Link to="/stocks/user/orders" className="text-xs font-bold text-[#00B386] hover:underline">
+                Full Orders Book →
+              </Link>
+            </div>
+            <div className="p-6 bg-white dark:bg-[#141414] rounded-2xl border border-[#E8E8E8] dark:border-white/10">
+              <div className="flex items-center justify-between py-3 border-b border-[#E8E8E8] dark:border-white/10 text-xs">
+                <div>
+                  <span className="font-bold text-[#44475B] dark:text-white mr-2">DEMO</span>
+                  <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] px-2 py-0.5 rounded">BUY</span>
+                </div>
+                <div className="font-mono text-[#44475B] dark:text-white">100 Qty @ ₹99.50</div>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">FILLED</span>
+              </div>
+              <div className="flex items-center justify-between py-3 text-xs">
+                <div>
+                  <span className="font-bold text-[#44475B] dark:text-white mr-2">DEMO</span>
+                  <span className="text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-[#EB5B3C] px-2 py-0.5 rounded">SELL</span>
+                </div>
+                <div className="font-mono text-[#44475B] dark:text-white">50 Qty @ ₹101.00</div>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">PARTIAL (20/50)</span>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'Watchlist' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-[#44475B] dark:text-white">Saved Instruments</h2>
+              <Link to="/stocks/user/watchlist" className="text-xs font-bold text-[#00B386] hover:underline">
+                Manage Watchlist →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {MOST_BOUGHT_STOCKS.slice(0, 3).map((st) => (
+                <div key={st.id} className="p-4 bg-white dark:bg-[#141414] rounded-2xl border border-[#E8E8E8] dark:border-white/10 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-sm text-[#44475B] dark:text-white">{st.symbol}</div>
+                    <div className="text-xs text-[#7C7E8C]">₹{st.price.toFixed(2)}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedStock(st)}
+                    className="px-3 py-1 rounded-full bg-[#00B386] text-white text-xs font-bold cursor-pointer hover:bg-[#009e75]"
+                  >
+                    Trade
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
