@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/build-vercel.js",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [

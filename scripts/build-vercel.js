@@ -1,5 +1,5 @@
-const fs = require('fs');
-const { execSync } = require('child_process');
+import fs from 'node:fs';
+import { execSync } from 'node:child_process';
 
 console.log('[OrderPulse Vercel Build] Current working directory:', process.cwd());
 
@@ -14,8 +14,7 @@ if (fs.existsSync('frontend')) {
   fs.cpSync('frontend/dist', 'dist', { recursive: true });
   console.log('[OrderPulse Vercel Build] Mirrored built artifacts to root "dist" directory.');
 } else {
-  console.log('[OrderPulse Vercel Build] Already inside frontend directory.');
-  console.log('[OrderPulse Vercel Build] Building Vite project...');
+  console.log('[OrderPulse Vercel Build] Inside frontend directory. Running npm run build...');
   execSync('npm run build', { stdio: 'inherit' });
 }
 
