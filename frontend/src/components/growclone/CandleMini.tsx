@@ -1,57 +1,59 @@
 import React from 'react';
+import { CandleData } from '../../data/mockFnO';
 
 interface CandleMiniProps {
-  candles: { open: number; close: number; high: number; low: number }[];
+  candles: CandleData[];
   width?: number;
   height?: number;
 }
 
 export const CandleMini: React.FC<CandleMiniProps> = ({
   candles,
-  width = 110,
-  height = 42,
+  width = 120,
+  height = 50,
 }) => {
-  const minVal = Math.min(...candles.map((c) => c.low)) * 0.95;
-  const maxVal = Math.max(...candles.map((c) => c.high)) * 1.05;
+  const minVal = Math.min(...candles.map((c) => c.low));
+  const maxVal = Math.max(...candles.map((c) => c.high));
   const range = maxVal - minVal || 1;
 
-  const candleWidth = (width / candles.length) * 0.6;
-  const step = width / candles.length;
+  const scaleY = (val: number) => {
+    return height - ((val - minVal) / range) * (height - 8) - 4;
+  };
+
+  const candleWidth = Math.max(width / candles.length - 3, 4);
 
   return (
     <svg width={width} height={height} className="overflow-visible">
       {candles.map((c, i) => {
         const isUp = c.close >= c.open;
         const color = isUp ? '#00B386' : '#EB5B3C';
-
-        const yHigh = height - ((c.high - minVal) / range) * height;
-        const yLow = height - ((c.low - minVal) / range) * height;
-        const yOpen = height - ((c.open - minVal) / range) * height;
-        const yClose = height - ((c.close - minVal) / range) * height;
-
-        const bodyY = Math.min(yOpen, yClose);
-        const bodyHeight = Math.max(Math.abs(yClose - yOpen), 1.5);
-        const xCenter = i * step + step / 2;
+        const x = i * (width / candles.length) + (width / candles.length - candleWidth) / 2;
+        const yTop = scaleY(Math.max(c.open, c.close));
+        const yBottom = scaleY(Math.min(c.open, c.close));
+        const bodyHeight = Math.max(yBottom - yTop, 2);
+        const wickX = x + candleWidth / 2;
+        const wickHighY = scaleY(c.high);
+        const wickLowY = scaleY(c.low);
 
         return (
           <g key={i}>
-            {/* Wick */}
+            {/* High/Low Wick */}
             <line
-              x1={xCenter}
-              y1={yHigh}
-              x2={xCenter}
-              y2={yLow}
+              x1={wickX}
+              y1={wickHighY}
+              x2={wickX}
+              y2={wickLowY}
               stroke={color}
               strokeWidth="1.2"
             />
-            {/* Real Body */}
+            {/* Candle Body */}
             <rect
-              x={xCenter - candleWidth / 2}
-              y={bodyY}
+              x={x}
+              y={yTop}
               width={candleWidth}
               height={bodyHeight}
               fill={color}
-              rx={0.5}
+              rx="1"
             />
           </g>
         );
