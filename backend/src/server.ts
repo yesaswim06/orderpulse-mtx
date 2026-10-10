@@ -207,11 +207,32 @@ app.get('/api/health', (req: Request, res: Response) => {
     status: 'ok',
     engine: bStatus.state,
     persistence: pStatus.healthy ? 'healthy' : 'degraded',
+    postgresConnected: pStatus.connectedToPostgres,
+    postgresUri: pStatus.connectionUri,
     persistenceQueueSize: pStatus.queueSize,
     persistedSequence: pStatus.persistedSequence,
     currentSequence: engine.currentSequence(),
     guarantees: pStatus.guarantee,
   });
+});
+
+// Database Inspector Endpoints (Essential for Jury Demo)
+app.get('/api/database/status', (req: Request, res: Response) => {
+  return res.json(persistence.getStatus());
+});
+
+app.get('/api/database/records', async (req: Request, res: Response) => {
+  const records = await persistence.getDatabaseRecords();
+  return res.json(records);
+});
+
+app.post('/api/database/connect', async (req: Request, res: Response) => {
+  const { connectionUri } = req.body;
+  if (!connectionUri) {
+    return res.status(400).json({ success: false, message: 'Missing connectionUri' });
+  }
+  const result = await persistence.initPostgres(connectionUri);
+  return res.json(result);
 });
 
 // 9. Admin Resume Trading

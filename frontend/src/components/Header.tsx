@@ -7,6 +7,7 @@ interface HeaderProps {
   metrics: EngineMetrics | null;
   isConnected: boolean;
   onOpenAdmin: () => void;
+  onOpenDatabase: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -14,6 +15,7 @@ export const Header: React.FC<HeaderProps> = ({
   metrics,
   isConnected,
   onOpenAdmin,
+  onOpenDatabase,
 }) => {
   const state = breaker?.state || 'RUNNING';
 
@@ -66,8 +68,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* System Vitals & Operator Button */}
-        <div className="flex items-center gap-3 text-xs">
+        {/* System Vitals, Database Inspector & Operator Button */}
+        <div className="flex items-center gap-2.5 text-xs">
           {/* WebSocket Status */}
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${
             isConnected
@@ -82,6 +84,16 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 font-mono-numbers text-slate-300">
             Seq: <span className="text-cyan-400 font-semibold">{metrics?.sequenceNumber || 0}</span>
           </div>
+
+          {/* Database Inspector Trigger (Key for Jury!) */}
+          <button
+            onClick={onOpenDatabase}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 border border-blue-700/60 transition-all font-semibold cursor-pointer shadow-md shadow-blue-950/40"
+            title="Inspect Live PostgreSQL Tables & WAL Journal"
+          >
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+            <span>DB Inspector</span>
+          </button>
 
           {/* Admin Control Button */}
           <button

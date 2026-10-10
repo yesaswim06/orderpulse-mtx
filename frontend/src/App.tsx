@@ -10,6 +10,7 @@ import { PriceHistoryChart } from './components/PriceHistoryChart';
 import { TradesTable } from './components/TradesTable';
 import { OrdersTable } from './components/OrdersTable';
 import { AdminModal } from './components/AdminModal';
+import { DatabaseInspectorModal } from './components/DatabaseInspectorModal';
 import {
   BreakerStatus,
   EngineMetrics,
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [isDbInspectorOpen, setIsDbInspectorOpen] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const lastSeqRef = useRef<number>(0);
@@ -252,6 +254,7 @@ export const App: React.FC = () => {
         metrics={metrics}
         isConnected={isConnected}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenDatabase={() => setIsDbInspectorOpen(true)}
       />
 
       <main className="flex-1 max-w-[1920px] w-full mx-auto px-4 py-4 flex flex-col">
@@ -323,6 +326,12 @@ export const App: React.FC = () => {
         breaker={breaker}
         onResume={handleResume}
         onResetReference={handleResetReference}
+      />
+
+      {/* Database Inspector Modal */}
+      <DatabaseInspectorModal
+        isOpen={isDbInspectorOpen}
+        onClose={() => setIsDbInspectorOpen(false)}
       />
     </div>
   );
