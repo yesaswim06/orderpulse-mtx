@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   ShieldAlert,
@@ -13,7 +14,8 @@ import {
   TrendingUp,
   Wallet,
   Sun,
-  Moon
+  Moon,
+  Home
 } from 'lucide-react';
 import { BreakerStatus, EngineMetrics, OrderBookSnapshot } from '../types';
 
@@ -59,21 +61,29 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-[1920px] mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
         {/* Brand & Platform Navigation Tabs */}
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onSelectTab('trade')}>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-950/40 border border-white/10">
+          <Link to="/" className="flex items-center gap-2.5 cursor-pointer group" title="Return to Home Landing Page">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-950/40 border border-white/10 group-hover:scale-105 transition-transform">
               <Zap className="w-5 h-5 text-white stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight text-white">OrderPulse</span>
+                <span className="text-base font-bold tracking-tight text-white group-hover:text-sky-300 transition-colors">OrderPulse</span>
                 <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">MTX</span>
               </div>
               <span className="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">Trading Simulation</span>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation Links (Real platform layout) */}
           <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Home</span>
+            </Link>
+
             <button
               onClick={() => onSelectTab('trade')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
