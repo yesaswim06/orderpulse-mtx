@@ -18,6 +18,7 @@ import {
   Info,
   Mail
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface GrowNavbarProps {
   theme: 'light' | 'dark';
@@ -38,6 +39,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Ctrl+K keyboard shortcut to focus search
   useEffect(() => {
@@ -244,60 +246,84 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
           )}
         </div>
 
-        {/* Right: Wallet Balance, Notifications & Profile Avatar */}
+        {/* Right: Wallet Balance, Notifications & Profile Avatar OR Log in / Sign up */}
         <div className="flex items-center gap-3">
-          {/* Quick Wallet Balance Pill */}
-          <button
-            onClick={onOpenWallet}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#00B386]/10 hover:bg-[#00B386]/20 text-[#00B386] text-xs font-bold font-mono transition cursor-pointer"
-            title="Deposit or Withdraw Funds (UPI, Netbanking, Cards)"
-          >
-            <Wallet className="w-3.5 h-3.5" />
-            <span>₹{(walletBalance / 1).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </button>
+          {!isAuthenticated ? (
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={onToggleTheme}
+                className="p-2 rounded-full text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white transition"
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[#00B386]" />}
+              </button>
+              <Link
+                to="/login"
+                className="px-4 py-2 text-xs font-bold text-[#44475B] dark:text-white hover:text-[#00B386] transition"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="px-5 py-2.5 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold shadow-sm transition"
+              >
+                Sign up
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Quick Wallet Balance Pill */}
+              <button
+                onClick={onOpenWallet}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#00B386]/10 hover:bg-[#00B386]/20 text-[#00B386] text-xs font-bold font-mono transition cursor-pointer"
+                title="Deposit or Withdraw Funds (UPI, Netbanking, Cards)"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                <span>₹{(walletBalance / 1).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </button>
 
-          {/* Bell Icon */}
-          <button
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 transition"
-            title="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-          </button>
+              {/* Bell Icon */}
+              <button
+                className="w-9 h-9 rounded-full flex items-center justify-center text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white hover:bg-[#F8F8F8] dark:hover:bg-neutral-800 transition"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+              </button>
 
-          {/* Profile Dropdown Anchor */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-sm cursor-pointer hover:ring-2 hover:ring-[#00B386]/40 transition"
-              title="Profile menu"
-            >
-              DU
-            </button>
-
-            {/* SCREEN 4: Profile Dropdown Popover */}
-            {isProfileOpen && (
-              <div className="absolute right-0 top-12 w-[340px] sm:w-[380px] bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-2xl border border-[#E8E8E8] dark:border-white/10 z-50 overflow-hidden animate-fade-in text-[#44475B] dark:text-[#E5E7EB]">
-                {/* Header */}
-                <Link
-                  to="/profile"
-                  onClick={() => setIsProfileOpen(false)}
-                  className="p-4 border-b border-[#E8E8E8] dark:border-white/10 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-neutral-800/40 transition"
+              {/* Profile Dropdown Anchor */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-sm cursor-pointer hover:ring-2 hover:ring-[#00B386]/40 transition"
+                  title="Profile menu"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#00B386]/15 text-[#00B386] font-extrabold flex items-center justify-center text-sm">
-                      DU
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-[#44475B] dark:text-white leading-tight">
-                        Aarav Sharma
-                      </h4>
-                      <p className="text-xs text-[#7C7E8C]">aarav.sharma@orderpulse.exchange</p>
-                    </div>
-                  </div>
-                  <div className="text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white p-1 rounded-lg">
-                    <Settings className="w-4 h-4" />
-                  </div>
-                </Link>
+                  {user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'DU'}
+                </button>
+
+                {/* SCREEN 4: Profile Dropdown Popover */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 top-12 w-[340px] sm:w-[380px] bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-2xl border border-[#E8E8E8] dark:border-white/10 z-50 overflow-hidden animate-fade-in text-[#44475B] dark:text-[#E5E7EB]">
+                    {/* Header */}
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="p-4 border-b border-[#E8E8E8] dark:border-white/10 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-neutral-800/40 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#00B386]/15 text-[#00B386] font-extrabold flex items-center justify-center text-sm">
+                          {user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'DU'}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-[#44475B] dark:text-white leading-tight">
+                            {user?.name || 'Aarav Sharma'}
+                          </h4>
+                          <p className="text-xs text-[#7C7E8C]">{user?.email || 'aarav.sharma@orderpulse.exchange'}</p>
+                        </div>
+                      </div>
+                      <div className="text-[#7C7E8C] hover:text-[#44475B] dark:hover:text-white p-1 rounded-lg">
+                        <Settings className="w-4 h-4" />
+                      </div>
+                    </Link>
 
                 {/* Rows */}
                 <div className="py-2 text-xs">
@@ -453,9 +479,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
-                      localStorage.removeItem('user_authenticated');
-                      localStorage.removeItem('user_name');
-                      localStorage.removeItem('user_email');
+                      logout();
                       navigate('/login');
                     }}
                     className="text-[#7C7E8C] hover:text-[#EB5B3C] font-semibold border-b border-dotted border-current transition cursor-pointer"
@@ -466,6 +490,8 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
     </header>

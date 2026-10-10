@@ -473,4 +473,42 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (trade_id) DO NOTHING;`;
     if (queryKey === 'ENGINE_WAL_LOGS') return this.localEventsTable.slice(0, limit);
     return [];
   }
+
+  public async findUser(emailOrId: string) {
+    if (this.isConnectedToPostgres && this.pool) {
+      try {
+        const res = await this.pool.query(
+          'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR user_id = $1 LIMIT 1',
+          [emailOrId.trim()]
+        );
+        if (res.rows.length > 0) return res.rows[0];
+      } catch (err: any) {
+        console.warn('[Postgres findUser error]:', err.message);
+      }
+    }
+    return null;
+  }
+
+  public async registerUser(userId: string, name: string, email: string, role = 'TRADER') {
+    if (this.isConnectedToPostgres && this.pool) {
+      try {
+        await this.pool.query(
+          `INSERT INTO users (user_id, name, email, role, kyc_status, is_demo)
+           VALUES ($1, $2, $3, $4, 'VERIFIED', 1)
+           ON CONFLICT (user_id) DO NOTHING`,
+          [userId, name, email, role]
+        );
+        await this.pool.query(
+          `INSERT INTO balances (account_id, user_id, currency, available, locked, is_demo)
+           VALUES ($1, $2, 'INR', 1000000.00, 0.00, 1)
+           ON CONFLICT (account_id) DO NOTHING`,
+          [`ACC-INR-${userId}`, userId]
+        );
+        return { success: true };
+      } catch (err: any) {
+        console.warn('[Postgres registerUser error]:', err.message);
+      }
+    }
+    return { success: true };
+  }
 }

@@ -987,4 +987,62 @@ export class MultiDbPersistenceWorker {
     const demo = this.localBalancesTable.find(b => b.user_id === userId && b.currency === 'DEMO')?.available || 5000;
     return { inr, demo, userId };
   }
+
+  public findUser(emailOrId: string) {
+    const term = (emailOrId || '').toLowerCase().trim();
+    return this.localUsersTable.find(
+      u => u.email.toLowerCase() === term || u.user_id.toLowerCase() === term
+    ) || null;
+  }
+
+  public async registerUser(name: string, email: string, role = 'TRADER') {
+    const existing = this.findUser(email);
+    if (existing) {
+      return { success: true, user: existing, alreadyExisted: true };
+    }
+
+    const userId = `USER-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+    const newUser = {
+      user_id: userId,
+      name,
+      email,
+      role,
+      kyc_status: 'VERIFIED',
+      is_demo: 1,
+      created_at: new Date().toISOString()
+    };
+
+    this.localUsersTable.unshift(newUser);
+
+    // Seed initial ₹10,00,000 balance in localBalancesTable
+    this.localBalancesTable.unshift({
+      account_id: `ACC-INR-${userId}`,
+      user_id: userId,
+      name,
+      currency: 'INR',
+      available: 1000000.00,
+      locked: 0.00,
+      is_demo: 1,
+      updated_at: new Date().toISOString()
+    });
+
+    // Write audit to MongoDB Atlas if connected
+    if (this.isConnectedToMongo && this.mongoDb) {
+      try {
+        const usersCol = this.mongoDb.collection('users_audit_log');
+        await usersCol.insertOne({
+          user_id: userId,
+          name,
+          email,
+          role,
+          initial_credit_rupees: 1000000.00,
+          created_at: new Date()
+        });
+      } catch (err: any) {
+        console.warn('[MongoDB User Audit Log Warning]:', err.message);
+      }
+    }
+
+    return { success: true, user: newUser, alreadyExisted: false };
+  }
 }

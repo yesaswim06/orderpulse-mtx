@@ -285,16 +285,111 @@ app.get('/api/book', (req: Request, res: Response) => {
   return res.json(engine.getBookSnapshot());
 });
 
-// 4. Get Orders History
-app.get('/api/orders', (req: Request, res: Response) => {
+// 4. Get Orders History (Drawn directly from Database tables)
+app.get('/api/orders', async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string || '100', 10);
+  const dbRecords = await persistence.getDatabaseRecords();
+  if (dbRecords?.tables?.orders && dbRecords.tables.orders.length > 0) {
+    return res.json(dbRecords.tables.orders.slice(0, limit));
+  }
   return res.json(engine.getOrders(limit));
 });
 
-// 5. Get Trades History
-app.get('/api/trades', (req: Request, res: Response) => {
+// 5. Get Trades History (Drawn directly from Database tables)
+app.get('/api/trades', async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string || '50', 10);
+  const dbRecords = await persistence.getDatabaseRecords();
+  if (dbRecords?.tables?.trades && dbRecords.tables.trades.length > 0) {
+    return res.json(dbRecords.tables.trades.slice(0, limit));
+  }
   return res.json(engine.getRecentTrades(limit));
+});
+
+// Auth 1: Login
+app.post('/api/auth/login', async (req: Request, res: Response) => {
+  const { email, password, mpin, userId } = req.body;
+  const lookupTerm = email || userId || '';
+  if (!lookupTerm) {
+    return res.status(400).json({ success: false, error: 'Email or User ID is required' });
+  }
+
+  // Draw user from database
+  let user = await persistence.findUser(lookupTerm);
+  if (!user) {
+    user = multiDb.findUser(lookupTerm);
+  }
+
+  // If user not yet seeded, create and persist
+  if (!user) {
+    const reg = await multiDb.registerUser(
+      lookupTerm.split('@')[0] || 'Trader',
+      lookupTerm,
+      'TRADER'
+    );
+    user = reg.user;
+    await persistence.registerUser(user.user_id, user.name, user.email, user.role);
+  }
+
+  const balances = multiDb.getBalances(user.user_id);
+  return res.json({
+    success: true,
+    user: {
+      userId: user.user_id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      kycStatus: user.kyc_status || 'VERIFIED',
+      balance: balances.inr
+    },
+    token: `op_token_${Date.now()}`
+  });
+});
+
+// Auth 2: Register / Signup
+app.post('/api/auth/signup', async (req: Request, res: Response) => {
+  const { name, email, role, mpin } = req.body;
+  if (!email || !name) {
+    return res.status(400).json({ success: false, error: 'Name and email are required' });
+  }
+
+  const reg = await multiDb.registerUser(name, email, role || 'TRADER');
+  const user = reg.user;
+  await persistence.registerUser(user.user_id, user.name, user.email, user.role);
+
+  const balances = multiDb.getBalances(user.user_id);
+  return res.json({
+    success: true,
+    user: {
+      userId: user.user_id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      kycStatus: 'VERIFIED',
+      balance: balances.inr
+    },
+    token: `op_token_${Date.now()}`
+  });
+});
+
+// Auth 3: Current User Profile & Balance
+app.get('/api/auth/me', async (req: Request, res: Response) => {
+  const userId = (req.query.userId as string) || (req.headers['x-user-id'] as string) || 'USER-DEMO-01';
+  let user = await persistence.findUser(userId);
+  if (!user) {
+    user = multiDb.findUser(userId);
+  }
+  const balances = multiDb.getBalances(userId);
+  return res.json({
+    success: true,
+    user: user || {
+      userId,
+      name: 'Aarav Sharma',
+      email: 'aarav.sharma@orderpulse.exchange',
+      role: 'TRADER',
+      kycStatus: 'VERIFIED'
+    },
+    balances
+  });
 });
 
 // 6. Get Circuit Breaker Status
