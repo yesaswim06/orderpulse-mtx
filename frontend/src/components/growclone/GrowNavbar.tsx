@@ -70,7 +70,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
   }, [isProfileOpen]);
 
   const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/stocks/user/holdings');
-  const isStocks = (location.pathname.startsWith('/stocks') && !location.pathname.startsWith('/stocks/user/holdings')) || location.pathname === '/';
+  const isStocks = location.pathname.startsWith('/stocks') && !location.pathname.startsWith('/stocks/user/holdings');
   const isFO = location.pathname.startsWith('/futures-and-options');
   const isMF = location.pathname.startsWith('/mutual-funds');
   const isTerminal = location.pathname.startsWith('/trade');
@@ -80,7 +80,7 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo + Tabs */}
         <div className="flex items-center gap-8">
-          <Link to="/stocks/user/explore" className="flex items-center gap-2.5 group">
+          <Link to="/" className="flex items-center gap-2.5 group">
             {/* Gradient circle-wave logo in SVG */}
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00B386] via-[#00c997] to-[#10b981] flex items-center justify-center shadow-sm">
               <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-none stroke-current stroke-2">
@@ -101,6 +101,16 @@ export const GrowNavbar: React.FC<GrowNavbarProps> = ({
 
           {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
+            <Link
+              to="/"
+              className={`transition-colors py-1 ${
+                location.pathname === '/'
+                  ? 'text-[#44475B] dark:text-white font-bold border-b-2 border-[#00B386]'
+                  : 'text-[#7C7E8C] dark:text-neutral-400 hover:text-[#44475B] dark:hover:text-white'
+              }`}
+            >
+              Home
+            </Link>
             <Link
               to="/dashboard"
               className={`transition-colors py-1 ${

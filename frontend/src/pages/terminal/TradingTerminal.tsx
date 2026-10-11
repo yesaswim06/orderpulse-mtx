@@ -288,25 +288,8 @@ export const TradingTerminal: React.FC = () => {
     return { success: true };
   };
 
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('mtx_theme') as 'dark' | 'light') || 'dark';
-  });
-
-  useEffect(() => {
-    if (theme === 'light') {
-      document.body.classList.add('theme-light');
-    } else {
-      document.body.classList.remove('theme-light');
-    }
-    localStorage.setItem('mtx_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
-
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0E0E0E] text-[#E5E7EB]' : 'bg-[#FAFAFA] text-[#44475B]'} flex flex-col font-sans transition-colors duration-200`}>
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] flex flex-col font-sans transition-colors duration-200">
       {/* Coded Institutional Terminal Sub-Header */}
       <div className="bg-white dark:bg-[#141414] border-b border-[#E8E8E8] dark:border-white/10 px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Terminal Tab Switchers */}

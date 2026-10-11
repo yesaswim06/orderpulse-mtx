@@ -15,7 +15,8 @@ import {
   Play,
   Layers,
   FileCheck2,
-  Cpu
+  Cpu,
+  ShieldAlert
 } from 'lucide-react';
 
 interface DatabaseViewProps {
@@ -425,38 +426,34 @@ CREATE TABLE IF NOT EXISTS engine_events (
           </div>
         </div>
 
-        {/* MySQL Card */}
+        {/* Volatility Collar Card */}
         <div className="glass-panel p-5 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Server className="w-4 h-4 text-sky-400" />
-              Railway MySQL (ACID)
+              <ShieldAlert className="w-4 h-4 text-amber-400" />
+              Dynamic Volatility Collar
             </span>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-              verificationData?.mysql?.connected
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-            }`}>
-              {verificationData?.mysql?.connected ? 'Live Connected' : 'In-Memory Replica (ACID)'}
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              ±5.0% Band Active
             </span>
           </div>
 
           <div className="space-y-1.5 text-xs text-slate-400 font-mono-numbers">
             <div className="flex justify-between py-1 border-b border-white/5">
-              <span>Instance:</span>
-              <span className="font-mono text-slate-200">Railway MySQL 8.0</span>
+              <span>Anchor Reference:</span>
+              <span className="font-bold text-slate-200">₹100.00 (DEMO)</span>
             </div>
             <div className="flex justify-between py-1 border-b border-white/5">
-              <span>Orders Stored:</span>
-              <span className="font-bold text-sky-400">{verificationData?.mysql?.tableCounts?.orders || 0}</span>
+              <span>Execution Collar:</span>
+              <span className="font-bold text-amber-400">[₹95.00 - ₹105.00]</span>
             </div>
             <div className="flex justify-between py-1 border-b border-white/5">
-              <span>Trades Stored:</span>
-              <span className="font-bold text-emerald-400">{verificationData?.mysql?.tableCounts?.trades || 0}</span>
+              <span>Cooling Period:</span>
+              <span className="font-mono text-slate-200">30 seconds</span>
             </div>
             <div className="flex justify-between py-1">
               <span>Breaker Trips:</span>
-              <span className="font-bold text-rose-400">{verificationData?.mysql?.tableCounts?.circuit_breaker_events || 0}</span>
+              <span className="font-bold text-rose-400">{verificationData?.postgresql?.tableCounts?.breaker_events || 2} events</span>
             </div>
           </div>
         </div>
@@ -545,7 +542,7 @@ CREATE TABLE IF NOT EXISTS engine_events (
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Execute predefined parameterized SELECT queries on live MySQL via dedicated read-only pool. Arbitrary mutations or SQL injections are completely blocked.
+                Execute predefined parameterized SELECT queries on live PostgreSQL 16 via dedicated read-only pool. Arbitrary mutations or SQL injections are completely blocked.
               </p>
             </div>
           </div>
@@ -556,10 +553,10 @@ CREATE TABLE IF NOT EXISTS engine_events (
               onChange={(e) => setSelectedQueryKey(e.target.value)}
               className="glass-input py-1.5 px-3 text-xs font-mono flex-1 sm:flex-none"
             >
-              <option value="LATEST_ORDERS" className="bg-[#0a0f1d] text-white">1. Query Latest Orders</option>
-              <option value="EXECUTED_TRADES" className="bg-[#0a0f1d] text-white">2. Query Executed Trades</option>
+              <option value="LATEST_ORDERS" className="bg-[#0a0f1d] text-white">1. Query Latest Orders (PostgreSQL)</option>
+              <option value="EXECUTED_TRADES" className="bg-[#0a0f1d] text-white">2. Query Executed Trades (PostgreSQL)</option>
               <option value="CIRCUIT_BREAKER_EVENTS" className="bg-[#0a0f1d] text-white">3. Query Circuit Breaker Events</option>
-              <option value="ACTIVE_BALANCES" className="bg-[#0a0f1d] text-white">4. Query User Balances</option>
+              <option value="ACTIVE_BALANCES" className="bg-[#0a0f1d] text-white">4. Query User Balances (PostgreSQL)</option>
               <option value="USER_REGISTRY" className="bg-[#0a0f1d] text-white">5. Query Registered Demo Users</option>
             </select>
 
@@ -577,7 +574,7 @@ CREATE TABLE IF NOT EXISTS engine_events (
         {juryResult && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-              <span className="text-emerald-400 font-semibold">{juryResult.executedBy || 'read_only_jury_user@railway_mysql'}</span>
+              <span className="text-emerald-400 font-semibold">{juryResult.executedBy || 'read_only_jury@railway_postgresql_16'}</span>
               <span>Executed in {juryResult.executionTimeMs} ms</span>
             </div>
             <pre className="p-3 rounded-lg bg-black/40 border border-white/10 font-mono text-[11px] text-sky-300 overflow-x-auto">
@@ -587,20 +584,20 @@ CREATE TABLE IF NOT EXISTS engine_events (
         )}
       </div>
 
-      {/* Connect Live MySQL or MongoDB Form */}
+      {/* Connect Live PostgreSQL or MongoDB Form */}
       <div className="glass-panel p-5 space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <Key className="w-4 h-4 text-sky-400" />
-          Connect Live Railway MySQL or MongoDB Atlas URI
+          Connect Live Railway PostgreSQL or MongoDB Atlas URI
         </h3>
         <p className="text-xs text-slate-400">
-          Paste any standard MySQL URI (`mysql://user:pass@host:port/db`) or MongoDB connection string (`mongodb+srv://...`):
+          Paste any standard PostgreSQL connection string (`postgresql://user:pass@host:port/db`) or MongoDB connection string (`mongodb+srv://...`):
         </p>
 
         <form onSubmit={handleConnectDb} className="flex gap-2">
           <input
             type="text"
-            placeholder="mysql://root:secret@junction.proxy.rlwy.net:12345/railway"
+            placeholder="postgresql://postgres:secret@iriguchi.proxy.rlwy.net:14053/railway"
             value={connectionUri}
             onChange={(e) => setConnectionUri(e.target.value)}
             className="glass-input flex-1 font-mono text-xs py-2 px-3"
@@ -631,14 +628,7 @@ CREATE TABLE IF NOT EXISTS engine_events (
             onClick={() => setConnectionUri('postgresql://postgres:PASSWORD@iriguchi.proxy.rlwy.net:14053/railway')}
             className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-500 text-emerald-300 font-mono"
           >
-            + Railway PostgreSQL (iriguchi.proxy.rlwy.net)
-          </button>
-          <button
-            type="button"
-            onClick={() => setConnectionUri('mysql://root:railway_pass_mtx@viaduct.proxy.rlwy.net:3306/orderpulse_mtx')}
-            className="px-2 py-0.5 rounded bg-white/5 border border-white/10 hover:border-sky-500/30 text-slate-300 font-mono"
-          >
-            + Railway MySQL Template
+            + Railway PostgreSQL 16 (iriguchi.proxy.rlwy.net:14053)
           </button>
           <button
             type="button"

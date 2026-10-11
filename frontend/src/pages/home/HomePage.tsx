@@ -26,11 +26,11 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] font-sans selection:bg-[#00B386]/20 selection:text-[#00B386] transition-colors">
-      {/* 1. Live Market Indices Ticker Strip */}
-      <LiveIndicesTicker />
-
-      {/* 2. Clean, Minimal, Coded Home Navigation Bar */}
+      {/* 1. Clean, Minimal, Coded Home Navigation Bar (Sticky Top) */}
       <HomeNavbar />
+
+      {/* 2. Live Market Indices Ticker Strip */}
+      <LiveIndicesTicker />
 
       {/* 3. Hero Section */}
       <section className="relative pt-12 pb-20 overflow-hidden">

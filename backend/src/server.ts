@@ -551,13 +551,17 @@ app.get('/api/database/query', async (req: Request, res: Response) => {
   if (table === 'balances') {
     rows = multiDashboard.liveData?.userBalances || [];
   } else if (table === 'orders') {
-    rows = (records.tables as any)?.orders || multiDashboard.liveData?.latestOrders || [];
+    const list = (records.tables as any)?.orders;
+    rows = list && list.length > 0 ? list : persistence.getLocalOrders();
   } else if (table === 'trades') {
-    rows = (records.tables as any)?.trades || multiDashboard.liveData?.latestTrades || [];
+    const list = (records.tables as any)?.trades;
+    rows = list && list.length > 0 ? list : persistence.getLocalTrades();
   } else if (table === 'breaker_events') {
-    rows = (records.tables as any)?.breaker_events || multiDashboard.liveData?.latestBreakerEvents || [];
+    const list = (records.tables as any)?.breaker_events;
+    rows = list && list.length > 0 ? list : persistence.getLocalBreakerEvents();
   } else if (table === 'engine_events') {
-    rows = (records.tables as any)?.engine_events || multiDashboard.liveData?.latestMongoAudits || [];
+    const list = (records.tables as any)?.engine_events;
+    rows = list && list.length > 0 ? list : (multiDashboard.liveData?.latestMongoAudits || []);
   } else {
     rows = (records.tables as any)?.[table] || [];
   }
