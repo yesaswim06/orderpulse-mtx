@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { WalletModal } from '../../components/WalletModal';
-import { getApiBase } from '../../config/api';
+import { getApiBase, safeFetchJson } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 
 interface Transaction {
@@ -54,8 +54,8 @@ export const WalletPage: React.FC = () => {
       const activeId = user?.userId || 'USER-DEMO-01';
       const res = await fetch(`${apiBase}/api/wallet/balances?userId=${activeId}`);
       if (res.ok) {
-        const data = await res.json();
-        if (data.inr !== undefined) setBalance(data.inr);
+        const data = await safeFetchJson(res);
+        if (data && data.inr !== undefined) setBalance(data.inr);
       }
     } catch {}
   };

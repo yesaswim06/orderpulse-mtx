@@ -18,6 +18,7 @@ import {
   Cpu,
   ShieldAlert
 } from 'lucide-react';
+import { safeFetchJson } from '../config/api';
 
 interface DatabaseViewProps {
   apiBase: string;
@@ -44,8 +45,8 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
     try {
       const res = await fetch(`${apiBase}/admin/database-verification?token=${adminToken}`);
       if (res.ok) {
-        const data = await res.json();
-        setVerificationData(data);
+        const data = await safeFetchJson(res);
+        if (data) setVerificationData(data);
       }
     } catch (e) {
       console.warn('Failed to fetch verification dashboard', e);
@@ -58,13 +59,13 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
     try {
       const res = await fetch(`${apiBase}/api/database/query?table=${table}&limit=50`);
       if (res.ok) {
-        const data = await res.json();
-        setTableRows(data.rows || []);
+        const data = await safeFetchJson(res, { rows: [] });
+        setTableRows(data?.rows || []);
       } else {
         const fallbackRes = await fetch(`${apiBase}/api/database/records`);
         if (fallbackRes.ok) {
-          const recData = await fallbackRes.json();
-          setTableRows(recData.tables?.[table] || []);
+          const recData: any = await safeFetchJson(fallbackRes, { tables: {} });
+          setTableRows(recData?.tables?.[table] || []);
         }
       }
     } catch {
@@ -86,7 +87,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
         },
         body: JSON.stringify({ queryKey: selectedQueryKey, limit: 15, token: adminToken })
       });
-      const data = await res.json();
+      const data = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
       setJuryResult(data);
     } catch (e: any) {
       setJuryResult({ success: false, error: e.message });
@@ -116,8 +117,8 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ connectionUri, mysqlUrl: connectionUri, databaseUrl: connectionUri })
       });
-      const data = await res.json();
-      if (res.ok && (data.connected || data.success)) {
+      const data = await safeFetchJson(res, { success: false, connected: false, message: 'Empty server response' });
+      if (res.ok && (data?.connected || data?.success)) {
         setConnectionMsg({
           type: 'success',
           text: `Connected to ${data.database || 'Database'} successfully! Migration verified.`
@@ -125,7 +126,7 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
         fetchVerification();
         fetchTableData(selectedTable);
       } else {
-        setConnectionMsg({ type: 'error', text: data.message || 'Connection failed' });
+        setConnectionMsg({ type: 'error', text: data?.message || 'Connection failed' });
       }
     } catch (err: any) {
       setConnectionMsg({ type: 'error', text: err.message || 'Network error' });
@@ -156,8 +157,8 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ count: 10 })
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await safeFetchJson(res, { success: false });
+      if (res.ok && data?.success) {
         setSeedSuccessMsg(`Successfully wrote ${data.ordersSeeded} orders and ${data.tradesSeeded} trades to database!`);
         fetchVerification();
         fetchTableData(selectedTable);
@@ -194,8 +195,8 @@ export const DatabaseView: React.FC<DatabaseViewProps> = ({ apiBase }) => {
           quantity: qty
         })
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await safeFetchJson(res, { success: false });
+      if (res.ok && data?.success) {
         setSeedSuccessMsg(`Order ${orderId} submitted & persisted to database successfully!`);
         setShowInsertModal(false);
         fetchVerification();

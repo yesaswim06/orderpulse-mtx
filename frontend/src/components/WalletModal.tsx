@@ -13,7 +13,7 @@ import {
   Sparkles,
   Lock
 } from 'lucide-react';
-import { getApiBase } from '../config/api';
+import { getApiBase, safeFetchJson } from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 interface WalletModalProps {
@@ -77,15 +77,15 @@ export const WalletModal: React.FC<WalletModalProps> = ({
           }
         })
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
+      if (res.ok && data?.success) {
         setStatusMsg({
           type: 'success',
           text: `Instant deposit of ₹${parseFloat(depositAmount).toLocaleString()} confirmed via ${depositMethod}. Reference ID: ${data.txnId}`
         });
         onBalanceUpdated();
       } else {
-        setStatusMsg({ type: 'error', text: data.error || 'Deposit failed' });
+        setStatusMsg({ type: 'error', text: data?.error || 'Deposit failed' });
       }
     } catch (err: any) {
       setStatusMsg({ type: 'error', text: err.message || 'Network error processing deposit' });
@@ -112,8 +112,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
           }
         })
       });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
+      if (res.ok && data?.success) {
         setStatusMsg({
           type: 'success',
           text: `Withdrawal of ₹${parseFloat(withdrawAmount).toLocaleString()} queued to ${beneficiaryName} (A/C: ${accountNumber.slice(-4).padStart(accountNumber.length, '•')}). Reference ID: ${data.txnId}`

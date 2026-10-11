@@ -12,7 +12,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { StockItem } from '../../data/growcloneData';
-import { getApiBase } from '../../config/api';
+import { getApiBase, safeFetchJson } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 
 interface StockDetailModalProps {
@@ -72,8 +72,8 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
         })
       });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
+      if (res.ok && data?.success) {
         setOrderResult({
           success: true,
           message: `${orderType} order for ${quantity} shares of ${stock.symbol} executed successfully! Margin updated.`,
@@ -85,7 +85,7 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
       } else {
         setOrderResult({
           success: false,
-          message: data.errorMessage || data.error || 'Circuit breaker or engine rejected order'
+          message: data?.errorMessage || data?.error || 'Circuit breaker or engine rejected order'
         });
       }
     } catch (e: any) {

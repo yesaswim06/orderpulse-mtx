@@ -32,7 +32,7 @@ import {
   Trade,
 } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { getBackendTarget, setBackendTarget as saveBackendTarget, RAILWAY_API_URL, RAILWAY_WS_URL } from '../../config/api';
+import { getBackendTarget, setBackendTarget as saveBackendTarget, RAILWAY_API_URL, RAILWAY_WS_URL, safeFetchJson } from '../../config/api';
 
 export const TradingTerminal: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'trade' | 'markets' | 'performance' | 'database' | 'docs'>('trade');
@@ -65,8 +65,8 @@ export const TradingTerminal: React.FC = () => {
       const activeUserId = user?.userId || 'USER-DEMO-01';
       const res = await fetch(`${apiBase}/api/wallet/balances?userId=${activeUserId}`);
       if (res.ok) {
-        const data = await res.json();
-        if (data.inr !== undefined) setWalletBalance(data.inr);
+        const data = await safeFetchJson(res);
+        if (data && data.inr !== undefined) setWalletBalance(data.inr);
       }
     } catch {}
   }, [apiBase, user]);
@@ -82,11 +82,26 @@ export const TradingTerminal: React.FC = () => {
         fetch(`${apiBase}/api/orders?limit=30`),
       ]);
 
-      if (bookRes.ok) setSnapshot(await bookRes.json());
-      if (breakerRes.ok) setBreaker(await breakerRes.json());
-      if (metricsRes.ok) setMetrics(await metricsRes.json());
-      if (tradesRes.ok) setTrades(await tradesRes.json());
-      if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (bookRes.ok) {
+        const d = await safeFetchJson(bookRes);
+        if (d) setSnapshot(d);
+      }
+      if (breakerRes.ok) {
+        const d = await safeFetchJson(breakerRes);
+        if (d) setBreaker(d);
+      }
+      if (metricsRes.ok) {
+        const d = await safeFetchJson(metricsRes);
+        if (d) setMetrics(d);
+      }
+      if (tradesRes.ok) {
+        const d = await safeFetchJson(tradesRes);
+        if (d) setTrades(d);
+      }
+      if (ordersRes.ok) {
+        const d = await safeFetchJson(ordersRes);
+        if (d) setOrders(d);
+      }
     } catch (e) {
       console.error('REST poll error:', e);
     }
@@ -206,9 +221,9 @@ export const TradingTerminal: React.FC = () => {
       }),
     });
 
-    const body = await res.json();
-    if (!res.ok || !body.success) {
-      return { success: false, message: body.errorMessage || body.error || 'Failed to submit' };
+    const body = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
+    if (!res.ok || !body?.success) {
+      return { success: false, message: body?.errorMessage || body?.error || 'Failed to submit' };
     }
 
     return { success: true };
@@ -222,9 +237,9 @@ export const TradingTerminal: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        alert(data.errorMessage || 'Failed to cancel order');
+      const data = await safeFetchJson(res, { success: false, errorMessage: 'Empty server response' });
+      if (!res.ok || !data?.success) {
+        alert(data?.errorMessage || 'Failed to cancel order');
       }
     } catch (e: any) {
       alert(e.message || 'Error cancelling order');
@@ -241,8 +256,8 @@ export const TradingTerminal: React.FC = () => {
       body: JSON.stringify({ scenario }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      alert(err.error || 'Scenario error');
+      const err = await safeFetchJson(res, { error: 'Scenario execution failed' });
+      alert(err?.error || 'Scenario error');
     }
   };
 
@@ -256,9 +271,9 @@ export const TradingTerminal: React.FC = () => {
       },
       body: JSON.stringify({ adminToken: token }),
     });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      return { success: false, message: data.error || data.message || 'Failed to resume' };
+    const data = await safeFetchJson(res, { success: false, error: 'Empty server response' });
+    if (!res.ok || !data?.success) {
+      return { success: false, message: data?.error || data?.message || 'Failed to resume' };
     }
     return { success: true };
   };
@@ -281,9 +296,9 @@ export const TradingTerminal: React.FC = () => {
         adminToken: token,
       }),
     });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      return { success: false, message: data.error || data.message || 'Failed to update reference' };
+    const data = await safeFetchJson(res, { success: false, error: 'Empty server response' });
+    if (!res.ok || !data?.success) {
+      return { success: false, message: data?.error || data?.message || 'Failed to update reference' };
     }
     return { success: true };
   };

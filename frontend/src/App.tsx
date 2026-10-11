@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { GrowNavbar } from './components/growclone/GrowNavbar';
-import { getApiBase } from './config/api';
+import { getApiBase, safeFetchJson } from './config/api';
 
 // Modular Folder Pages
 import { HomePage } from './pages/home/HomePage';
@@ -62,8 +62,8 @@ const AppLayout: React.FC = () => {
       const activeId = user.userId;
       const res = await fetch(`${getApiBase()}/api/wallet/balances?userId=${activeId}`);
       if (res.ok) {
-        const data = await res.json();
-        if (data.inr !== undefined) setWalletBalance(data.inr);
+        const data = await safeFetchJson(res);
+        if (data && data.inr !== undefined) setWalletBalance(data.inr);
       }
     } catch {}
   }, [isAuthenticated, user]);

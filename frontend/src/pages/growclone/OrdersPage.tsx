@@ -13,7 +13,7 @@ import {
 import { IndexTickerStrip } from '../../components/growclone/IndexTickerStrip';
 import { SubNav } from '../../components/growclone/SubNav';
 import { Order } from '../../types';
-import { getApiBase } from '../../config/api';
+import { getApiBase, safeFetchJson } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 
 export const OrdersPage: React.FC = () => {
@@ -29,8 +29,8 @@ export const OrdersPage: React.FC = () => {
       const activeId = user?.userId || 'USER-DEMO-01';
       const res = await fetch(`${apiBase}/api/orders?userId=${activeId}`);
       if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
+        const data = await safeFetchJson(res, []);
+        setOrders(Array.isArray(data) ? data : []);
       }
     } catch {
       // Fallback to sample orders if backend is unreachable

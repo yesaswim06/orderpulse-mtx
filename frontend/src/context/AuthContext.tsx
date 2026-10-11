@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     try {
       const stored = localStorage.getItem('orderpulse_auth_user');
-      if (stored) {
+      if (stored && stored.trim() !== '' && stored !== 'undefined' && stored !== 'null') {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.userId) {
           setUser(parsed);
@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {
       console.warn('Failed to parse auth user session:', e);
+      try { localStorage.removeItem('orderpulse_auth_user'); } catch {}
     } finally {
       setIsLoading(false);
     }

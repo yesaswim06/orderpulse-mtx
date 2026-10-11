@@ -13,7 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getApiBase } from '../../config/api';
+import { getApiBase, safeFetchJson } from '../../config/api';
 
 export const LoginPage: React.FC = () => {
   const [authMode, setAuthMode] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
@@ -67,8 +67,8 @@ export const LoginPage: React.FC = () => {
       });
 
       if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
+        const data = await safeFetchJson(res, { success: false });
+        if (data?.success && data?.user) {
           login(data.user);
           setSuccess(true);
           setTimeout(() => {

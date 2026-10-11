@@ -477,7 +477,7 @@ app.post('/api/wallet/withdraw', async (req: Request, res: Response) => {
 });
 
 // 12. Authenticated Admin Database Verification Dashboard
-app.get('/admin/database-verification', async (req: Request, res: Response) => {
+app.get(['/admin/database-verification', '/api/admin/database-verification'], async (req: Request, res: Response) => {
   const token = (req.headers['x-admin-token'] as string) || (req.query.token as string);
   if (token !== DEMO_ADMIN_TOKEN) {
     return res.status(401).json({
@@ -693,7 +693,7 @@ app.post('/api/database/connect', async (req: Request, res: Response) => {
 });
 
 // 9. Admin Resume Trading
-app.post('/api/admin/resume', (req: Request, res: Response) => {
+app.post(['/api/admin/resume', '/api/resume'], (req: Request, res: Response) => {
   const token = req.headers['x-admin-token'] as string || req.body.adminToken;
   const force = req.body.force !== undefined ? Boolean(req.body.force) : true;
   const result = engine.resume(token, DEMO_ADMIN_TOKEN, force);
@@ -707,7 +707,7 @@ app.post('/api/admin/resume', (req: Request, res: Response) => {
 });
 
 // 10. Admin Reference Price Reset
-app.post('/api/admin/reference', (req: Request, res: Response) => {
+app.post(['/api/admin/reference', '/api/reference'], (req: Request, res: Response) => {
   const token = req.headers['x-admin-token'] as string || req.body.adminToken;
   const { referencePriceTicks, referencePriceRupees, reason } = req.body;
 
@@ -723,7 +723,7 @@ app.post('/api/admin/reference', (req: Request, res: Response) => {
 });
 
 // 11. Scenarios for Interactive Demo
-app.post('/api/admin/scenario', (req: Request, res: Response) => {
+app.post(['/api/admin/scenario', '/api/scenario'], (req: Request, res: Response) => {
   const { scenario } = req.body;
 
   if (scenario === 'reset') {
@@ -898,6 +898,23 @@ function seedInitialBook() {
 }
 
 seedInitialBook();
+
+// Catch-all 404 handler: Always return JSON, never raw HTML or empty response
+app.use((req: Request, res: Response) => {
+  return res.status(404).json({
+    success: false,
+    error: `Endpoint not found: ${req.method} ${req.url}`
+  });
+});
+
+// Global Error Handler: Always return JSON
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error('[Global Server Error]:', err);
+  return res.status(500).json({
+    success: false,
+    error: err?.message || 'Internal Server Error'
+  });
+});
 
 server.listen(PORT, () => {
   console.log(`======================================================================`);

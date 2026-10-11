@@ -25,7 +25,7 @@ import { HoldingsPortfolioView } from '../../components/growclone/HoldingsPortfo
 import { StockDetailModal } from '../../components/growclone/StockDetailModal';
 import { MOST_BOUGHT_STOCKS, StockItem } from '../../data/growcloneData';
 import { useAuth } from '../../context/AuthContext';
-import { getApiBase } from '../../config/api';
+import { getApiBase, safeFetchJson } from '../../config/api';
 
 interface DashboardPageProps {
   walletBalance: number;
@@ -51,8 +51,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         const activeId = user?.userId || 'USER-DEMO-01';
         const res = await fetch(`${getApiBase()}/api/orders?userId=${activeId}&limit=5`);
         if (res.ok) {
-          const data = await res.json();
-          setRecentOrders(data);
+          const data = await safeFetchJson(res, []);
+          setRecentOrders(Array.isArray(data) ? data : []);
         }
       } catch {}
     };

@@ -40,3 +40,21 @@ export const getWsUrl = (): string => {
   }
   return RAILWAY_WS_URL;
 };
+
+/**
+ * Safely parses response as JSON, preventing "Unexpected end of JSON input" errors.
+ * If response body is empty or invalid, returns fallback instead of throwing SyntaxError.
+ */
+export async function safeFetchJson<T = any>(res: Response, fallback: any = null): Promise<T> {
+  try {
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      return fallback;
+    }
+    return JSON.parse(text) as T;
+  } catch (err) {
+    console.warn('[safeFetchJson] Handled non-JSON / empty body gracefully:', err);
+    return fallback;
+  }
+}
+
