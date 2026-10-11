@@ -12,11 +12,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { StockItem } from '../../data/growcloneData';
+import { getApiBase } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
 
 interface StockDetailModalProps {
   stock: StockItem | null;
   onClose: () => void;
-  apiBase: string;
+  apiBase?: string;
   walletBalance: number;
   onOrderSuccess?: () => void;
 }
@@ -24,11 +26,14 @@ interface StockDetailModalProps {
 export const StockDetailModal: React.FC<StockDetailModalProps> = ({
   stock,
   onClose,
-  apiBase,
+  apiBase: propApiBase,
   walletBalance,
   onOrderSuccess
 }) => {
   if (!stock) return null;
+
+  const { user } = useAuth();
+  const apiBase = propApiBase || getApiBase();
 
   const [orderType, setOrderType] = useState<'BUY' | 'SELL'>('BUY');
   const [productType, setProductType] = useState<'DELIVERY' | 'INTRADAY'>('DELIVERY');
@@ -59,7 +64,7 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
         body: JSON.stringify({
           orderId,
           requestId,
-          participantId: 'RETAIL_INVESTOR_GROWW',
+          participantId: user?.userId || 'RETAIL_INVESTOR_GROWW',
           symbol: stock.symbol === 'DEMO' ? 'DEMO' : stock.symbol,
           side: orderType,
           priceTicks,

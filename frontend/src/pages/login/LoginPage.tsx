@@ -13,6 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBase } from '../../config/api';
 
 export const LoginPage: React.FC = () => {
   const [authMode, setAuthMode] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
@@ -55,7 +56,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${getApiBase()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +131,7 @@ export const LoginPage: React.FC = () => {
     const chosen = profiles[userType];
     setLoading(true);
     try {
-      await fetch('/api/auth/login', {
+      await fetch(`${getApiBase()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: chosen.email, userId: chosen.userId })

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Database, ShieldCheck, CheckCircle2, Server, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getApiBase } from '../../../config/api';
 
 export const DatabaseAuditBadge: React.FC = () => {
   const [health, setHealth] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/health')
+    fetch(`${getApiBase()}/api/health`)
       .then(res => res.json())
       .then(data => setHealth(data))
       .catch(() => {});

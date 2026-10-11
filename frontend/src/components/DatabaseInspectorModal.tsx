@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Database, X, RefreshCw, CheckCircle2, AlertCircle, Terminal, Shield } from 'lucide-react';
+import { getApiBase } from '../config/api';
 
 interface DatabaseInspectorModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export const DatabaseInspectorModal: React.FC<DatabaseInspectorModalProps> = ({ 
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/database/records');
+      const res = await fetch(`${getApiBase()}/api/database/records`);
       if (res.ok) {
         const data = await res.json();
         setDbData(data);
@@ -42,7 +43,7 @@ export const DatabaseInspectorModal: React.FC<DatabaseInspectorModalProps> = ({ 
     try {
       setIsConnecting(true);
       setConnectMessage(null);
-      const res = await fetch('/api/database/connect', {
+      const res = await fetch(`${getApiBase()}/api/database/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ connectionUri: connectionUriInput.trim() }),

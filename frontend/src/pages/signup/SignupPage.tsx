@@ -11,6 +11,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBase } from '../../config/api';
 
 export const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -40,7 +41,7 @@ export const SignupPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/signup', {
+      const res = await fetch(`${getApiBase()}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

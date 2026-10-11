@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { WalletModal } from '../../components/WalletModal';
+import { getApiBase } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
 
 interface Transaction {
   id: string;
@@ -44,11 +46,13 @@ export const WalletPage: React.FC = () => {
     }
   ]);
 
-  const apiBase = '';
+  const { user } = useAuth();
+  const apiBase = getApiBase();
 
   const fetchBalance = async () => {
     try {
-      const res = await fetch(`${apiBase}/api/wallet/balances?userId=USER-DEMO-01`);
+      const activeId = user?.userId || 'USER-DEMO-01';
+      const res = await fetch(`${apiBase}/api/wallet/balances?userId=${activeId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.inr !== undefined) setBalance(data.inr);

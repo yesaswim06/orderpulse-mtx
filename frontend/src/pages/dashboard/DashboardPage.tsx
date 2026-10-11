@@ -24,6 +24,8 @@ import { SubNav } from '../../components/growclone/SubNav';
 import { HoldingsPortfolioView } from '../../components/growclone/HoldingsPortfolioView';
 import { StockDetailModal } from '../../components/growclone/StockDetailModal';
 import { MOST_BOUGHT_STOCKS, StockItem } from '../../data/growcloneData';
+import { useAuth } from '../../context/AuthContext';
+import { getApiBase } from '../../config/api';
 
 interface DashboardPageProps {
   walletBalance: number;
@@ -40,12 +42,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Fetch live orders for recent orders feed
     const fetchOrders = async () => {
       try {
-        const res = await fetch('/api/orders?userId=USER-DEMO-01&limit=5');
+        const activeId = user?.userId || 'USER-DEMO-01';
+        const res = await fetch(`${getApiBase()}/api/orders?userId=${activeId}&limit=5`);
         if (res.ok) {
           const data = await res.json();
           setRecentOrders(data);
@@ -53,7 +57,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       } catch {}
     };
     fetchOrders();
-  }, []);
+  }, [user]);
 
   const totalInvestedStock = 39985;
   const totalCurrentStock = 40700;

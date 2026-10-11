@@ -13,11 +13,13 @@ import {
   Sparkles,
   Lock
 } from 'lucide-react';
+import { getApiBase } from '../config/api';
+import { useAuth } from '../context/AuthContext';
 
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
-  apiBase: string;
+  apiBase?: string;
   currentBalance: number;
   onBalanceUpdated: () => void;
 }
@@ -25,10 +27,13 @@ interface WalletModalProps {
 export const WalletModal: React.FC<WalletModalProps> = ({
   isOpen,
   onClose,
-  apiBase,
+  apiBase: propApiBase,
   currentBalance,
   onBalanceUpdated
 }) => {
+  const { user } = useAuth();
+  const apiBase = propApiBase || getApiBase();
+  const activeUserId = user?.userId || 'USER-DEMO-01';
   const [tab, setTab] = useState<'deposit' | 'withdraw'>('deposit');
   const [depositMethod, setDepositMethod] = useState<'UPI' | 'CARD' | 'NETBANKING'>('UPI');
   const [depositAmount, setDepositAmount] = useState<string>('50000');
@@ -62,7 +67,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'USER-DEMO-01',
+          userId: activeUserId,
           amount: parseFloat(depositAmount),
           method: depositMethod,
           paymentDetails: {
@@ -98,7 +103,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'USER-DEMO-01',
+          userId: activeUserId,
           amount: parseFloat(withdrawAmount),
           bankDetails: {
             accountNumber,

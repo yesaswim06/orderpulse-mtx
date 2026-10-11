@@ -31,6 +31,8 @@ import {
   Side,
   Trade,
 } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { getBackendTarget, setBackendTarget as saveBackendTarget, RAILWAY_API_URL, RAILWAY_WS_URL } from '../../config/api';
 
 export const TradingTerminal: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'trade' | 'markets' | 'performance' | 'database' | 'docs'>('trade');
@@ -44,22 +46,30 @@ export const TradingTerminal: React.FC = () => {
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
   const [walletBalance, setWalletBalance] = useState<number>(1000000);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>('local');
+  const { user } = useAuth();
+  const [backendTarget, setBackendTarget] = useState<'railway' | 'local'>(getBackendTarget);
+
+  const toggleBackendTarget = () => {
+    const next = backendTarget === 'railway' ? 'local' : 'railway';
+    setBackendTarget(next);
+    saveBackendTarget(next);
+  };
 
   const lastSeqRef = useRef<number>(0);
   const wsRef = useRef<WebSocket | null>(null);
 
-  const apiBase = backendTarget === 'railway' ? 'https://orderpulse-mtx.up.railway.app' : '';
+  const apiBase = backendTarget === 'railway' ? RAILWAY_API_URL : '';
 
   const fetchWalletBalance = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/wallet/balances?userId=USER-DEMO-01`);
+      const activeUserId = user?.userId || 'USER-DEMO-01';
+      const res = await fetch(`${apiBase}/api/wallet/balances?userId=${activeUserId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.inr !== undefined) setWalletBalance(data.inr);
       }
     } catch {}
-  }, [apiBase]);
+  }, [apiBase, user]);
 
   // Fetch full state via REST as fallback or init
   const fetchFullState = useCallback(async () => {
@@ -364,6 +374,20 @@ export const TradingTerminal: React.FC = () => {
 
         {/* Real-Time Telemetry & Controls */}
         <div className="flex items-center gap-2.5">
+          {/* Backend Target Switcher */}
+          <button
+            onClick={toggleBackendTarget}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium border transition cursor-pointer ${
+              backendTarget === 'railway'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-[#00B386]'
+                : 'bg-neutral-100 dark:bg-white/5 border-neutral-200 dark:border-white/10 text-slate-600 dark:text-neutral-400'
+            }`}
+            title="Click to toggle between Railway Cloud Backend and Localhost"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>{backendTarget === 'railway' ? 'Railway Cloud' : 'Localhost'}</span>
+          </button>
+
           {/* WebSocket Engine State */}
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-[11px] font-mono">
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[#00B386] animate-pulse' : 'bg-rose-500'}`} />

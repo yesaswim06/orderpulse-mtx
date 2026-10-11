@@ -7,6 +7,7 @@ import {
   RotateCcw,
   AlertTriangle
 } from 'lucide-react';
+import { getApiBase } from '../../../config/api';
 
 export const CircuitBreakerVisualizer: React.FC = () => {
   const [breakerStatus, setBreakerStatus] = useState<'RUNNING' | 'HALTED'>('RUNNING');
@@ -17,7 +18,7 @@ export const CircuitBreakerVisualizer: React.FC = () => {
   // Poll breaker status from backend
   const fetchBreaker = async () => {
     try {
-      const res = await fetch('/api/breaker');
+      const res = await fetch(`${getApiBase()}/api/breaker`);
       if (res.ok) {
         const data = await res.json();
         setBreakerStatus(data.state || 'RUNNING');
@@ -37,7 +38,7 @@ export const CircuitBreakerVisualizer: React.FC = () => {
   const handleTriggerShock = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/scenario', {
+      const res = await fetch(`${getApiBase()}/api/admin/scenario`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenario: 'price_shock' })
@@ -54,7 +55,7 @@ export const CircuitBreakerVisualizer: React.FC = () => {
   const handleResume = async () => {
     setLoading(true);
     try {
-      await fetch('/api/admin/resume', {
+      await fetch(`${getApiBase()}/api/admin/resume`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminToken: 'demo-admin-secret-mtx-2026', force: true })

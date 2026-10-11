@@ -13,17 +13,21 @@ import {
 import { IndexTickerStrip } from '../../components/growclone/IndexTickerStrip';
 import { SubNav } from '../../components/growclone/SubNav';
 import { Order } from '../../types';
+import { getApiBase } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
 
 export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const { user } = useAuth();
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const apiBase = '';
-      const res = await fetch(`${apiBase}/api/orders?userId=USER-DEMO-01`);
+      const apiBase = getApiBase();
+      const activeId = user?.userId || 'USER-DEMO-01';
+      const res = await fetch(`${apiBase}/api/orders?userId=${activeId}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -216,7 +220,7 @@ export const OrdersPage: React.FC = () => {
                             <button
                               onClick={async () => {
                                 try {
-                                  const apiBase = '';
+                                  const apiBase = getApiBase();
                                   const res = await fetch(`${apiBase}/api/orders/${ord.orderId}/cancel`, { method: 'POST' });
                                   if (res.ok) {
                                     setOrders(prev => prev.map(o => o.orderId === ord.orderId ? { ...o, status: 'CANCELLED' } : o));

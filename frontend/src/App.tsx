@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { GrowNavbar } from './components/growclone/GrowNavbar';
+import { getApiBase } from './config/api';
 
 // Modular Folder Pages
 import { HomePage } from './pages/home/HomePage';
@@ -31,7 +32,7 @@ const AppLayout: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('growclone_theme') as 'light' | 'dark') || 'light';
   });
-  const [walletBalance, setWalletBalance] = useState<number>(1000000);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
@@ -53,15 +54,19 @@ const AppLayout: React.FC = () => {
 
   // Poll or fetch wallet balance for active user
   const fetchWalletBalance = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setWalletBalance(0);
+      return;
+    }
     try {
-      const activeId = user?.userId || 'USER-DEMO-01';
-      const res = await fetch(`/api/wallet/balances?userId=${activeId}`);
+      const activeId = user.userId;
+      const res = await fetch(`${getApiBase()}/api/wallet/balances?userId=${activeId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.inr !== undefined) setWalletBalance(data.inr);
       }
     } catch {}
-  }, [user]);
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     fetchWalletBalance();
@@ -221,7 +226,7 @@ const AppLayout: React.FC = () => {
       <WalletModal
         isOpen={isWalletOpen}
         onClose={() => setIsWalletOpen(false)}
-        apiBase=""
+        apiBase={getApiBase()}
         currentBalance={walletBalance}
         onBalanceUpdated={fetchWalletBalance}
       />

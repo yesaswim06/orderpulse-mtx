@@ -22,6 +22,7 @@ import {
 } from '../../data/growcloneData';
 import { StockDetailModal } from '../../components/growclone/StockDetailModal';
 import { HoldingsPortfolioView } from '../../components/growclone/HoldingsPortfolioView';
+import { getApiBase } from '../../config/api';
 
 interface StocksExplorePageProps {
   walletBalance?: number;
@@ -38,7 +39,7 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
   const navigate = useNavigate();
 
-  const apiBase = '';
+  const apiBase = getApiBase();
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] transition-colors pb-16">

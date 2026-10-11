@@ -10,6 +10,7 @@ import {
   Cpu,
   ShieldCheck
 } from 'lucide-react';
+import { getApiBase } from '../../../config/api';
 
 export const EngineSimulatorCard: React.FC = () => {
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY');
@@ -31,7 +32,7 @@ export const EngineSimulatorCard: React.FC = () => {
     const orderId = `SIM-${side}-${Date.now().toString(36).toUpperCase()}`;
 
     try {
-      const res = await fetch('/api/order', {
+      const res = await fetch(`${getApiBase()}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

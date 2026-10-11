@@ -59,10 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('orderpulse_auth_user');
-    localStorage.removeItem('user_authenticated');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_email');
+    try {
+      const theme = localStorage.getItem('growclone_theme');
+      const mtxTheme = localStorage.getItem('mtx_theme');
+      localStorage.clear();
+      sessionStorage.clear();
+      if (theme) localStorage.setItem('growclone_theme', theme);
+      if (mtxTheme) localStorage.setItem('mtx_theme', mtxTheme);
+    } catch {}
   };
 
   const updateBalance = (newBalance: number) => {
