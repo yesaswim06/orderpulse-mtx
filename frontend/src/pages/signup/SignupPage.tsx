@@ -22,7 +22,14 @@ export const SignupPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
+
+  // If already authenticated, redirect to dashboard
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +41,7 @@ export const SignupPage: React.FC = () => {
     }
 
     if (!mpin || mpin.length < 4) {
-      setError('Please create a 4-digit security PIN.');
+      setError('Please create a 4-digit security PIN or password.');
       return;
     }
 
@@ -48,40 +55,27 @@ export const SignupPage: React.FC = () => {
           name: name.trim(),
           email: email.trim(),
           pan: pan.trim().toUpperCase(),
-          mpin
+          mpin,
+          password: mpin
         })
       });
 
-      if (res.ok) {
-        const data = await safeFetchJson(res, { success: false });
-        if (data?.success && data?.user) {
-          login(data.user);
-          setSuccess(true);
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 800);
-          return;
-        }
-      }
-    } catch (e) {
-      // Fallback
-    }
+      const data = await safeFetchJson(res, { success: false, error: 'Server returned empty response' });
 
-    // Client fallback with strict ZERO initial balance
-    const newUser = {
-      userId: `USER-${Date.now().toString(36).toUpperCase()}`,
-      name: name.trim(),
-      email: email.trim(),
-      role: 'TRADER',
-      kycStatus: 'VERIFIED',
-      balance: 0.00
-    };
-    login(newUser);
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 800);
+      if (res.ok && data?.success && data?.user) {
+        login(data.user);
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 800);
+      } else {
+        setError(data?.error || 'Registration failed. An account with this email may already exist.');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Network error connecting to registration server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

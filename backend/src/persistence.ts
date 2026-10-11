@@ -122,11 +122,17 @@ export class PersistenceWorker {
         user_id VARCHAR(64) PRIMARY KEY,
         name VARCHAR(128) NOT NULL,
         email VARCHAR(128) NOT NULL,
+        password_hash VARCHAR(255),
+        mpin VARCHAR(32),
         role VARCHAR(32) DEFAULT 'TRADER',
         kyc_status VARCHAR(32) DEFAULT 'VERIFIED',
         is_demo SMALLINT DEFAULT 1,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS mpin VARCHAR(32);
+      UPDATE users SET password_hash = 'demo1234', mpin = '1234' WHERE password_hash IS NULL;
 
       CREATE TABLE IF NOT EXISTS balances (
         account_id VARCHAR(64) PRIMARY KEY,
@@ -628,14 +634,24 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
     return null;
   }
 
-  public async registerUser(userId: string, name: string, email: string, role = 'TRADER', initialBalance = 0.00) {
+  public async registerUser(
+    userId: string,
+    name: string,
+    email: string,
+    role = 'TRADER',
+    initialBalance = 0.00,
+    password?: string,
+    mpin?: string
+  ) {
     if (this.isConnectedToPostgres && this.pool) {
       try {
         await this.pool.query(
-          `INSERT INTO users (user_id, name, email, role, kyc_status, is_demo)
-           VALUES ($1, $2, $3, $4, 'VERIFIED', 1)
-           ON CONFLICT (user_id) DO NOTHING`,
-          [userId, name, email, role]
+          `INSERT INTO users (user_id, name, email, role, password_hash, mpin, kyc_status, is_demo)
+           VALUES ($1, $2, $3, $4, $5, $6, 'VERIFIED', 1)
+           ON CONFLICT (user_id) DO UPDATE SET 
+             password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+             mpin = COALESCE(EXCLUDED.mpin, users.mpin)`,
+          [userId, name, email, role, password || 'demo1234', mpin || '1234']
         );
         await this.pool.query(
           `INSERT INTO balances (account_id, user_id, currency, available, locked, is_demo)

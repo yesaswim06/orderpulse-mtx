@@ -69,10 +69,23 @@ export class MultiDbPersistenceWorker {
   private initDemoSeed() {
     this.localUsersTable = [
       {
+        user_id: 'USER-DEMO-01',
+        name: 'Demo Client',
+        email: 'demo@orderpulse.exchange',
+        role: 'PRO_TRADER',
+        password_hash: 'demo1234',
+        mpin: '1234',
+        kyc_status: 'VERIFIED',
+        is_demo: 1,
+        created_at: new Date().toISOString()
+      },
+      {
         user_id: 'USER-IN-01',
         name: 'Aarav Sharma',
         email: 'aarav.sharma@mumbai-algo.in',
         role: 'PRO_TRADER',
+        password_hash: 'demo1234',
+        mpin: '1234',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -82,6 +95,8 @@ export class MultiDbPersistenceWorker {
         name: 'Priya Patel',
         email: 'priya.patel@gujarat-capital.in',
         role: 'MARKET_MAKER',
+        password_hash: 'demo1234',
+        mpin: '1234',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -91,6 +106,8 @@ export class MultiDbPersistenceWorker {
         name: 'Rohan Verma',
         email: 'rohan.verma@delhi-hft.in',
         role: 'HFT_OPERATOR',
+        password_hash: 'demo1234',
+        mpin: '1234',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -100,6 +117,8 @@ export class MultiDbPersistenceWorker {
         name: 'Ananya Iyer',
         email: 'ananya.iyer@chennai-investments.in',
         role: 'RETAIL_TRADER',
+        password_hash: 'demo1234',
+        mpin: '1234',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -109,6 +128,8 @@ export class MultiDbPersistenceWorker {
         name: 'Vikramaditya Singhania',
         email: 'vikram.singhania@kolkata-prop.in',
         role: 'INSTITUTIONAL_DESK',
+        password_hash: 'demo1234',
+        mpin: '1234',
         kyc_status: 'VERIFIED',
         is_demo: 1,
         created_at: new Date().toISOString()
@@ -1023,9 +1044,18 @@ export class MultiDbPersistenceWorker {
     ) || null;
   }
 
-  public async registerUser(name: string, email: string, role = 'TRADER', initialBalance = 0.00) {
+  public async registerUser(
+    name: string,
+    email: string,
+    role = 'TRADER',
+    initialBalance = 0.00,
+    password?: string,
+    mpin?: string
+  ) {
     const existing = this.findUser(email);
     if (existing) {
+      if (password) existing.password_hash = password;
+      if (mpin) existing.mpin = mpin;
       return { success: true, user: existing, alreadyExisted: true };
     }
 
@@ -1034,6 +1064,8 @@ export class MultiDbPersistenceWorker {
       user_id: userId,
       name,
       email,
+      password_hash: password || 'demo1234',
+      mpin: mpin || '1234',
       role,
       kyc_status: 'VERIFIED',
       is_demo: 1,

@@ -35,7 +35,7 @@ const AppLayout: React.FC = () => {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [isWalletOpen, setIsWalletOpen] = useState<boolean>(false);
   const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -72,6 +72,15 @@ const AppLayout: React.FC = () => {
     fetchWalletBalance();
   }, [fetchWalletBalance]);
 
+  // Prevent routing evaluation before initial auth session is resolved
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-[#0E0E0E]' : 'bg-white'}`}>
+        <div className="w-8 h-8 border-2 border-[#00B386] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   // Hide GrowNavbar on pure home landing page and auth routes
   const isMinimalRoute = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup';
 
@@ -91,8 +100,8 @@ const AppLayout: React.FC = () => {
         <Route path="/" element={<HomePage />} />
 
         {/* Auth Routes in Separate Folders */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />} />
 
         {/* Stocks Routes */}
         <Route

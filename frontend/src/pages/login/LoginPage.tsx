@@ -28,7 +28,15 @@ export const LoginPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
+
+  // If already authenticated, redirect to dashboard or intended route
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      const params = new URLSearchParams(location.search);
+      navigate(params.get('redirect') || '/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, location.search, navigate]);
 
   const handleSendOtp = () => {
     if (!phone || phone.length < 10) {
@@ -37,19 +45,18 @@ export const LoginPage: React.FC = () => {
     }
     setError(null);
     setOtpSent(true);
-    setOtp('584291');
+    setOtp('1234');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (authMode === 'PASSWORD' && (!email.trim() || !password)) {
-      setError('Please provide your registered email and password.');
-      return;
-    }
-    if (authMode === 'OTP' && (!phone.trim() || !otp.trim())) {
-      setError('Please enter mobile number and 6-digit OTP.');
+    const loginEmail = authMode === 'PASSWORD' ? email.trim() : `${phone.trim()}@sms.orderpulse.exchange`;
+    const loginCredential = authMode === 'PASSWORD' ? password : otp;
+
+    if (!loginEmail || !loginCredential) {
+      setError('Please provide your registered login credentials.');
       return;
     }
 
@@ -60,90 +67,65 @@ export const LoginPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: authMode === 'PASSWORD' ? email : `${phone}@sms.orderpulse.exchange`,
-          password,
-          mpin: otp
+          email: loginEmail,
+          password: loginCredential,
+          mpin: loginCredential
         })
       });
 
-      if (res.ok) {
-        const data = await safeFetchJson(res, { success: false });
-        if (data?.success && data?.user) {
-          login(data.user);
-          setSuccess(true);
-          setTimeout(() => {
-            const params = new URLSearchParams(location.search);
-            navigate(params.get('redirect') || '/dashboard');
-          }, 600);
-          return;
-        }
-      }
-    } catch (e) {
-      // Fallback
-    }
+      const data = await safeFetchJson(res, { success: false, error: 'Server returned empty response' });
 
-    // Client fallback if network hiccup
-    const fallbackUser = {
-      userId: 'USER-DEMO-01',
-      name: authMode === 'PASSWORD' ? (email.split('@')[0] || 'Aarav Sharma') : 'Mobile Verified Trader',
-      email: authMode === 'PASSWORD' ? email : `${phone}@sms.orderpulse.exchange`,
-      role: 'PRO_TRADER',
-      kycStatus: 'VERIFIED',
-      balance: 1000000
-    };
-    login(fallbackUser);
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => {
-      const params = new URLSearchParams(location.search);
-      navigate(params.get('redirect') || '/dashboard');
-    }, 600);
+      if (res.ok && data?.success && data?.user) {
+        login(data.user);
+        setSuccess(true);
+        setTimeout(() => {
+          const params = new URLSearchParams(location.search);
+          navigate(params.get('redirect') || '/dashboard');
+        }, 600);
+      } else {
+        // STRICT: DO NOT log in if credentials do not match!
+        setError(data?.error || 'Invalid credentials. Password or PIN does not match your registered account.');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Network error connecting to authentication server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleQuickDemoLogin = async (userType: 'AARAV' | 'PRIYA' | 'INSTITUTIONAL') => {
-    const profiles = {
-      AARAV: {
-        userId: 'USER-IN-01',
-        name: 'Aarav Sharma',
-        email: 'aarav.sharma@mumbai-algo.in',
-        role: 'PRO_TRADER',
-        kycStatus: 'VERIFIED',
-        balance: 1000000
-      },
-      PRIYA: {
-        userId: 'USER-IN-02',
-        name: 'Priya Patel',
-        email: 'priya.patel@gujarat-capital.in',
-        role: 'MARKET_MAKER',
-        kycStatus: 'VERIFIED',
-        balance: 2500000
-      },
-      INSTITUTIONAL: {
-        userId: 'USER-IN-05',
-        name: 'Vikramaditya Singhania',
-        email: 'vikram.singhania@kolkata-prop.in',
-        role: 'INSTITUTIONAL_DESK',
-        kycStatus: 'VERIFIED',
-        balance: 10000000
-      }
+    const demoCredentials = {
+      AARAV: { email: 'aarav.sharma@mumbai-algo.in', password: 'demo1234' },
+      PRIYA: { email: 'priya.patel@gujarat-capital.in', password: 'demo1234' },
+      INSTITUTIONAL: { email: 'vikram.singhania@kolkata-prop.in', password: 'demo1234' }
     };
 
-    const chosen = profiles[userType];
+    const cred = demoCredentials[userType];
     setLoading(true);
+    setError(null);
+
     try {
-      await fetch(`${getApiBase()}/api/auth/login`, {
+      const res = await fetch(`${getApiBase()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: chosen.email, userId: chosen.userId })
+        body: JSON.stringify({ email: cred.email, password: cred.password, mpin: '1234' })
       });
-    } catch {}
 
-    login(chosen);
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 500);
+      const data = await safeFetchJson(res, { success: false });
+      if (res.ok && data?.success && data?.user) {
+        login(data.user);
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
+      } else {
+        setError(data?.error || 'Failed to authenticate demo profile');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Network error connecting to server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -343,6 +325,17 @@ export const LoginPage: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+
+          {/* Credentials Info Tip */}
+          <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/50 border border-neutral-200 dark:border-white/10 text-[11px] text-[#7C7E8C] space-y-1">
+            <div className="font-semibold text-slate-700 dark:text-neutral-200 flex items-center justify-between">
+              <span>Existing Verified Accounts</span>
+              <span className="font-mono text-[#00B386] font-bold">PIN: 1234 • Pass: demo1234</span>
+            </div>
+            <div className="text-[10px]">
+              • Use your registered email & PIN/password, or any verified test profile below.
+            </div>
+          </div>
 
           {/* Quick Demo Test Profiles */}
           <div className="pt-2 border-t border-[#F0F0F0] dark:border-white/[0.06] space-y-2">
