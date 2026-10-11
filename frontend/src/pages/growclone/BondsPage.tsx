@@ -11,30 +11,89 @@ import {
   PieChart,
   ArrowRight,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Wallet,
+  Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { POPULAR_BONDS, Bond } from '../../data/growcloneData';
 import { IndexTickerStrip } from '../../components/growclone/IndexTickerStrip';
+import { useAuth } from '../../context/AuthContext';
+import { getApiBase, safeFetchJson } from '../../config/api';
 
-export const BondsPage: React.FC = () => {
+interface BondsPageProps {
+  walletBalance?: number;
+  onRefreshBalance?: () => void;
+  onOpenWallet?: () => void;
+}
+
+export const BondsPage: React.FC<BondsPageProps> = ({
+  walletBalance = 0,
+  onRefreshBalance = () => {},
+  onOpenWallet = () => {}
+}) => {
+  const { user, updateBalance } = useAuth();
   const [selectedBond, setSelectedBond] = useState<Bond>(POPULAR_BONDS[0]);
   const [investmentAmount, setInvestmentAmount] = useState<number>(50000);
   const [holdingYears, setHoldingYears] = useState<number>(3);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [orderConfirmed, setOrderConfirmed] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const [txnDetails, setTxnDetails] = useState<{ txnId?: string; newBalance?: number } | null>(null);
 
   // Yield calculations
   const yieldNumeric = parseFloat(selectedBond.yieldPercent) / 100;
   const estimatedReturns = Math.round(investmentAmount * Math.pow(1 + yieldNumeric, holdingYears) - investmentAmount);
   const maturityValue = investmentAmount + estimatedReturns;
 
-  const handleConfirmInterest = () => {
-    setOrderConfirmed(true);
-    setTimeout(() => {
-      setShowReviewModal(false);
-      setOrderConfirmed(false);
-    }, 2500);
+  const hasSufficientBalance = walletBalance >= investmentAmount;
+
+  const handleConfirmInterest = async () => {
+    if (!hasSufficientBalance) {
+      setOrderError(`Insufficient wallet balance. You need ₹${investmentAmount.toLocaleString('en-IN')}, but your current wallet balance is ₹${walletBalance.toLocaleString('en-IN')}. Please add funds.`);
+      return;
+    }
+
+    setSubmitting(true);
+    setOrderError(null);
+
+    try {
+      const activeUserId = user?.userId || 'USER-DEMO-01';
+      const res = await fetch(`${getApiBase()}/api/bonds/invest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: activeUserId,
+          bondId: selectedBond.id,
+          issuer: selectedBond.issuer,
+          amount: investmentAmount,
+          tenureYears: holdingYears
+        })
+      });
+
+      const data = await safeFetchJson(res, { success: false, error: 'Server returned empty response' });
+
+      if (res.ok && data?.success) {
+        if (data.newBalance !== undefined) {
+          updateBalance(data.newBalance);
+        }
+        onRefreshBalance();
+        setTxnDetails({ txnId: data.txnId, newBalance: data.newBalance });
+        setOrderConfirmed(true);
+        setTimeout(() => {
+          setShowReviewModal(false);
+          setOrderConfirmed(false);
+          setTxnDetails(null);
+        }, 3500);
+      } else {
+        setOrderError(data?.error || data?.errorMessage || 'Failed to allocate bond capital');
+      }
+    } catch (e: any) {
+      setOrderError(e.message || 'Network error executing bond investment');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -220,12 +279,45 @@ export const BondsPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Wallet Balance Status */}
+              <div className="p-3.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-white/10 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-[#7C7E8C]">
+                  <Wallet className="w-4 h-4 text-[#00B386]" />
+                  <span>Available Balance</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-[#44475B] dark:text-white">
+                    ₹{walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                  {!hasSufficientBalance && (
+                    <button
+                      onClick={onOpenWallet}
+                      className="px-2 py-0.5 rounded-full bg-[#00B386] text-white text-[10px] font-bold hover:bg-[#009e75] transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Funds
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Action Button */}
               <button
-                onClick={() => setShowReviewModal(true)}
-                className="w-full py-3.5 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2"
+                onClick={() => {
+                  setOrderError(null);
+                  setShowReviewModal(true);
+                }}
+                className={`w-full py-3.5 rounded-full text-white text-xs font-bold transition shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
+                  hasSufficientBalance
+                    ? 'bg-[#00B386] hover:bg-[#009e75] shadow-emerald-500/20'
+                    : 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
+                }`}
               >
-                <span>Invest in {selectedBond.issuer}</span>
+                <span>
+                  {hasSufficientBalance
+                    ? `Invest in ${selectedBond.issuer}`
+                    : `Add Funds & Invest (Needs ₹${(investmentAmount - walletBalance).toLocaleString('en-IN')})`}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -234,7 +326,7 @@ export const BondsPage: React.FC = () => {
 
         {/* Review & Confirmation Modal */}
         {showReviewModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
             <div className="bg-white dark:bg-[#1A1A1A] max-w-md w-full rounded-3xl p-6 shadow-2xl border border-[#E8E8E8] dark:border-white/10 space-y-6">
               <div className="text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] flex items-center justify-center mx-auto mb-3">
@@ -244,7 +336,7 @@ export const BondsPage: React.FC = () => {
                   Confirm Demo Bond Investment
                 </h3>
                 <p className="text-xs text-[#7C7E8C] mt-1">
-                  You are allocating demo capital from your OrderPulse simulated wallet.
+                  You are allocating capital from your OrderPulse wallet. Amount will be debited instantly.
                 </p>
               </div>
 
@@ -267,26 +359,75 @@ export const BondsPage: React.FC = () => {
                   <span className="text-[#7C7E8C]">Tenure:</span>
                   <span className="font-bold text-[#44475B] dark:text-white">{holdingYears} Years</span>
                 </div>
+                <div className="pt-2 border-t border-slate-200 dark:border-neutral-700 flex justify-between">
+                  <span className="text-[#7C7E8C]">Your Wallet Balance:</span>
+                  <span className={`font-bold font-mono ${hasSufficientBalance ? 'text-[#00B386]' : 'text-rose-500'}`}>
+                    ₹{walletBalance.toLocaleString('en-IN')}
+                  </span>
+                </div>
               </div>
 
+              {orderError && (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div>{orderError}</div>
+                    {!hasSufficientBalance && (
+                      <button
+                        onClick={() => {
+                          setShowReviewModal(false);
+                          onOpenWallet();
+                        }}
+                        className="font-bold underline cursor-pointer hover:text-rose-700 block"
+                      >
+                        Click here to deposit funds into wallet →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {orderConfirmed ? (
-                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] text-xs font-bold text-center flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Demo Bond Order Executed & Subscribed!</span>
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] text-xs font-semibold space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-2 font-bold text-sm">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Bond Investment Confirmed & Debited!</span>
+                  </div>
+                  <p className="text-neutral-600 dark:text-neutral-300">
+                    ₹{investmentAmount.toLocaleString('en-IN')} debited from wallet.
+                    {txnDetails?.newBalance !== undefined && (
+                      <span className="block font-mono text-[#00B386] font-bold mt-1">
+                        New Wallet Balance: ₹{txnDetails.newBalance.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </p>
+                  {txnDetails?.txnId && (
+                    <span className="text-[10px] font-mono text-neutral-400 block">
+                      Ref Txn: {txnDetails.txnId}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowReviewModal(false)}
-                    className="flex-1 py-3 rounded-full border border-[#E8E8E8] dark:border-white/10 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-neutral-800 cursor-pointer"
+                    disabled={submitting}
+                    className="flex-1 py-3 rounded-full border border-[#E8E8E8] dark:border-white/10 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-neutral-800 cursor-pointer disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmInterest}
-                    className="flex-1 py-3 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                    disabled={submitting || !hasSufficientBalance}
+                    className="flex-1 py-3 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Confirm Order
+                    {submitting ? (
+                      <span>Processing Debit...</span>
+                    ) : !hasSufficientBalance ? (
+                      <span>Insufficient Funds</span>
+                    ) : (
+                      <span>Confirm & Debit ₹{investmentAmount.toLocaleString('en-IN')}</span>
+                    )}
                   </button>
                 </div>
               )}

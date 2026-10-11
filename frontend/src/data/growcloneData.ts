@@ -18,6 +18,7 @@ export interface StockItem {
   change: number;
   changePercent: number;
   isPositive: boolean;
+  buyersCount?: number;
 }
 
 export interface FOCard {

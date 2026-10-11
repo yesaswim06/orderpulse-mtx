@@ -164,7 +164,16 @@ const AppLayout: React.FC = () => {
         <Route path="/stocks/user/watchlist" element={<WatchlistPage />} />
 
         {/* Bonds Exploration */}
-        <Route path="/bonds" element={<BondsPage />} />
+        <Route
+          path="/bonds"
+          element={
+            <BondsPage
+              walletBalance={walletBalance}
+              onRefreshBalance={fetchWalletBalance}
+              onOpenWallet={() => setIsWalletOpen(true)}
+            />
+          }
+        />
 
         {/* F&O & Mutual Funds */}
         <Route path="/futures-and-options/user/explore" element={<FOExplorePage />} />

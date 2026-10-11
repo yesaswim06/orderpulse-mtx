@@ -20,7 +20,7 @@ interface StockDetailModalProps {
   onClose: () => void;
   apiBase?: string;
   walletBalance: number;
-  onOrderSuccess?: () => void;
+  onOrderSuccess?: (updatedStock?: any) => void;
 }
 
 export const StockDetailModal: React.FC<StockDetailModalProps> = ({
@@ -32,18 +32,19 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
 }) => {
   if (!stock) return null;
 
-  const { user } = useAuth();
+  const { user, updateBalance } = useAuth();
   const apiBase = propApiBase || getApiBase();
 
+  const [liveStock, setLiveStock] = useState<StockItem>(stock);
   const [orderType, setOrderType] = useState<'BUY' | 'SELL'>('BUY');
   const [productType, setProductType] = useState<'DELIVERY' | 'INTRADAY'>('DELIVERY');
   const [quantity, setQuantity] = useState<number>(10);
   const [orderMode, setOrderMode] = useState<'MARKET' | 'LIMIT'>('LIMIT');
   const [limitPrice, setLimitPrice] = useState<number>(stock.price);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [orderResult, setOrderResult] = useState<{ success: boolean; message: string; latency?: number } | null>(null);
+  const [orderResult, setOrderResult] = useState<{ success: boolean; message: string; latency?: number; debitedAmount?: number; newBalance?: number } | null>(null);
 
-  const priceToUse = orderMode === 'MARKET' ? stock.price : limitPrice;
+  const priceToUse = orderMode === 'MARKET' ? liveStock.price : limitPrice;
   const totalAmount = Number((priceToUse * quantity).toFixed(2));
   const hasSufficientBalance = orderType === 'SELL' || walletBalance >= totalAmount;
 
@@ -56,6 +57,7 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
     const priceTicks = Math.round(priceToUse * 100);
     const orderId = `ORD-GROW-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const requestId = `REQ-GROW-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const activeUserId = user?.userId || 'USER-DEMO-01';
 
     try {
       const res = await fetch(`${apiBase}/api/orders`, {
@@ -64,8 +66,8 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
         body: JSON.stringify({
           orderId,
           requestId,
-          participantId: user?.userId || 'RETAIL_INVESTOR_GROWW',
-          symbol: stock.symbol === 'DEMO' ? 'DEMO' : stock.symbol,
+          participantId: activeUserId,
+          symbol: liveStock.symbol === 'DEMO' ? 'DEMO' : liveStock.symbol,
           side: orderType,
           priceTicks,
           quantity
@@ -74,13 +76,45 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
 
       const data = await safeFetchJson(res, { success: false, error: 'Empty or invalid server response' });
       if (res.ok && data?.success) {
+        // Atomic wallet balance update
+        if (data.updatedBalance !== undefined) {
+          const newBalVal = data.updatedBalance.inr !== undefined ? data.updatedBalance.inr : data.updatedBalance.available;
+          updateBalance(newBalVal);
+        }
+
+        // Live stock valuation increase from buyer demand
+        if (data.updatedStock) {
+          setLiveStock((prev) => ({
+            ...prev,
+            price: data.updatedStock.price,
+            change: data.updatedStock.change,
+            changePercent: data.updatedStock.changePercent,
+            buyersCount: data.updatedStock.buyersCount,
+            isPositive: data.updatedStock.change >= 0
+          }));
+          if (orderMode === 'LIMIT') {
+            setLimitPrice(data.updatedStock.price);
+          }
+        }
+
+        const successMsg = orderType === 'BUY'
+          ? `BUY order filled! ₹${totalAmount.toLocaleString('en-IN')} debited from wallet.${
+              data.updatedStock
+                ? ` Market price appreciated to ₹${data.updatedStock.price.toFixed(2)} (+${data.updatedStock.changePercent}%) from buyer demand!`
+                : ''
+            }`
+          : `SELL order filled! ₹${totalAmount.toLocaleString('en-IN')} credited to wallet margin.`;
+
         setOrderResult({
           success: true,
-          message: `${orderType} order for ${quantity} shares of ${stock.symbol} executed successfully! Margin updated.`,
+          message: successMsg,
+          debitedAmount: orderType === 'BUY' ? totalAmount : undefined,
+          newBalance: data.updatedBalance?.inr,
           latency: data.matchingLatencyMicros || 2.15
         });
+
         if (onOrderSuccess) {
-          onOrderSuccess();
+          onOrderSuccess(data.updatedStock);
         }
       } else {
         setOrderResult({
@@ -118,12 +152,17 @@ export const StockDetailModal: React.FC<StockDetailModalProps> = ({
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="font-extrabold text-base text-[#44475B] dark:text-white font-mono">
-                  ₹{stock.price.toFixed(2)}
+                  ₹{liveStock.price.toFixed(2)}
                 </span>
-                <span className={`text-xs font-semibold flex items-center gap-0.5 ${stock.isPositive ? 'text-[#00B386]' : 'text-[#EB5B3C]'}`}>
-                  {stock.isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                  <span>{stock.isPositive ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</span>
+                <span className={`text-xs font-semibold flex items-center gap-0.5 ${liveStock.isPositive ? 'text-[#00B386]' : 'text-[#EB5B3C]'}`}>
+                  {liveStock.isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                  <span>{liveStock.isPositive ? '+' : ''}{liveStock.change.toFixed(2)} ({liveStock.changePercent.toFixed(2)}%)</span>
                 </span>
+                {liveStock.buyersCount !== undefined && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00B386] font-semibold border border-emerald-500/20">
+                    👥 {liveStock.buyersCount} Buyers
+                  </span>
+                )}
               </div>
             </div>
           </div>

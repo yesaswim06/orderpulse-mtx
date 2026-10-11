@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Coins,
@@ -9,7 +9,8 @@ import {
   ChevronRight,
   TrendingUp,
   Activity,
-  ArrowRight
+  ArrowRight,
+  Users
 } from 'lucide-react';
 import { IndexTickerStrip } from '../../components/growclone/IndexTickerStrip';
 import { SubNav } from '../../components/growclone/SubNav';
@@ -22,7 +23,7 @@ import {
 } from '../../data/growcloneData';
 import { StockDetailModal } from '../../components/growclone/StockDetailModal';
 import { HoldingsPortfolioView } from '../../components/growclone/HoldingsPortfolioView';
-import { getApiBase } from '../../config/api';
+import { getApiBase, getWsUrl, safeFetchJson } from '../../config/api';
 
 interface StocksExplorePageProps {
   walletBalance?: number;
@@ -31,15 +32,78 @@ interface StocksExplorePageProps {
 }
 
 export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
-  walletBalance = 1000000,
+  walletBalance = 0,
   onOpenWallet = () => {},
   onRefreshBalance = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('Explore');
+  const [stocksList, setStocksList] = useState<StockItem[]>(MOST_BOUGHT_STOCKS);
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
   const navigate = useNavigate();
 
   const apiBase = getApiBase();
+
+  // Fetch live market valuations and buyer interest
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const res = await fetch(`${apiBase}/api/stocks/prices`);
+        if (res.ok) {
+          const data = await safeFetchJson(res);
+          if (data?.stocks) {
+            setStocksList((prev) =>
+              prev.map((s) => {
+                const live = data.stocks[s.symbol];
+                if (live) {
+                  return {
+                    ...s,
+                    price: live.price,
+                    change: live.change,
+                    changePercent: live.changePercent,
+                    buyersCount: live.buyersCount,
+                    isPositive: live.change >= 0
+                  };
+                }
+                return s;
+              })
+            );
+          }
+        }
+      } catch {}
+    };
+
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 4000);
+
+    // WebSocket live price updates
+    let ws: WebSocket | null = null;
+    try {
+      ws = new WebSocket(getWsUrl());
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if ((msg.type === 'ORDER_ACCEPTED' || msg.type === 'STOCK_PRICE_UPDATE') && msg.updatedStock) {
+            const st = msg.updatedStock;
+            setStocksList((prev) =>
+              prev.map((s) => (s.symbol === st.symbol ? {
+                ...s,
+                price: st.price,
+                change: st.change,
+                changePercent: st.changePercent,
+                buyersCount: st.buyersCount,
+                isPositive: st.change >= 0
+              } : s))
+            );
+          }
+        } catch {}
+      };
+    } catch {}
+
+    return () => {
+      clearInterval(interval);
+      try { ws?.close(); } catch {}
+    };
+  }, [apiBase]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0E0E0E] text-[#44475B] dark:text-[#E5E7EB] transition-colors pb-16">
@@ -226,7 +290,7 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {MOST_BOUGHT_STOCKS.slice(0, 4).map((stock) => (
+                  {stocksList.slice(0, 4).map((stock) => (
                     <div
                       key={stock.id}
                       onClick={() => setSelectedStock(stock)}
@@ -239,9 +303,14 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
                         <h3 className="font-bold text-xs text-[#44475B] dark:text-white line-clamp-1 mb-0.5 group-hover:text-[#00B386] transition-colors">
                           {stock.name}
                         </h3>
-                        <span className="text-[10px] font-mono text-[#7C7E8C] block mb-3">
-                          {stock.symbol}
-                        </span>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[10px] font-mono text-[#7C7E8C]">
+                            {stock.symbol}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#00B386] bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                            {stock.buyersCount ? `${stock.buyersCount} buyers` : 'Active'}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="pt-2 border-t border-[#F0F0F0] dark:border-white/[0.06]">
@@ -313,9 +382,9 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
 
                 <EmptyState
                   title="You haven't invested yet"
-                  description="Start trading with simulated ₹10,00,000 cash balance on live FIFO order matching."
+                  description="Start trading equities on live FIFO order matching engine with real-time settlement."
                   actionText="Explore Stocks & Trade"
-                  onAction={() => setSelectedStock(MOST_BOUGHT_STOCKS[0])}
+                  onAction={() => setSelectedStock(stocksList[0] || MOST_BOUGHT_STOCKS[0])}
                 />
               </div>
 
@@ -375,7 +444,27 @@ export const StocksExplorePage: React.FC<StocksExplorePageProps> = ({
           onClose={() => setSelectedStock(null)}
           apiBase={apiBase}
           walletBalance={walletBalance}
-          onOrderSuccess={() => {
+          onOrderSuccess={(updatedStock) => {
+            if (updatedStock) {
+              setStocksList((prev) =>
+                prev.map((s) => (s.symbol === updatedStock.symbol ? {
+                  ...s,
+                  price: updatedStock.price,
+                  change: updatedStock.change,
+                  changePercent: updatedStock.changePercent,
+                  buyersCount: updatedStock.buyersCount,
+                  isPositive: updatedStock.change >= 0
+                } : s))
+              );
+              setSelectedStock((prev) => prev && prev.symbol === updatedStock.symbol ? {
+                ...prev,
+                price: updatedStock.price,
+                change: updatedStock.change,
+                changePercent: updatedStock.changePercent,
+                buyersCount: updatedStock.buyersCount,
+                isPositive: updatedStock.change >= 0
+              } : prev);
+            }
             onRefreshBalance();
           }}
         />

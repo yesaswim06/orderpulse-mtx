@@ -90,7 +90,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <span className="text-xs font-bold text-[#00B386] uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-500/20">
                 User Dashboard · MTX Demo
               </span>
-              <span className="text-xs text-[#7C7E8C]">Client ID: USER-DEMO-01</span>
+              <span className="text-xs text-[#7C7E8C]">Client ID: {user?.userId || 'USER-DEMO-01'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#44475B] dark:text-white tracking-tight">
               Investments & Portfolio Dashboard

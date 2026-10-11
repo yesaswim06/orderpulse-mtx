@@ -119,7 +119,19 @@ setInterval(() => {
 // REST API ENDPOINTS
 // -------------------------------------------------------------
 
-// 1. Submit Order
+// Dynamic Stock Prices Registry: Real-Time Market Valuation that increases based on Buyers
+const dynamicStockPrices: Record<string, { symbol: string; price: number; change: number; changePercent: number; buyersCount: number }> = {
+  'DEMO': { symbol: 'DEMO', price: 100.00, change: 0.00, changePercent: 0.00, buyersCount: 14 },
+  'NSE': { symbol: 'NSE', price: 1730.90, change: 6.30, changePercent: 0.37, buyersCount: 1540 },
+  'TATASTEEL': { symbol: 'TATASTEEL', price: 173.80, change: 1.84, changePercent: 1.07, buyersCount: 890 },
+  'CUPID': { symbol: 'CUPID', price: 366.10, change: 9.45, changePercent: 2.65, buyersCount: 320 },
+  'UNIONBANK': { symbol: 'UNIONBANK', price: 139.75, change: 3.20, changePercent: 2.34, buyersCount: 650 },
+  'RELIANCE': { symbol: 'RELIANCE', price: 2980.00, change: 15.50, changePercent: 0.52, buyersCount: 2100 },
+  'TCS': { symbol: 'TCS', price: 3890.00, change: 22.00, changePercent: 0.57, buyersCount: 1420 },
+  'INFY': { symbol: 'INFY', price: 1650.00, change: 8.50, changePercent: 0.52, buyersCount: 980 }
+};
+
+// 1. Submit Order with Margin Validation & Buyer Price Impact
 app.post('/api/orders', async (req: Request, res: Response) => {
   const { orderId, requestId, participantId, symbol, side, priceTicks, quantity } = req.body;
 
@@ -128,18 +140,54 @@ app.post('/api/orders', async (req: Request, res: Response) => {
   }
 
   const targetSymbol = symbol || 'DEMO';
+  const activeUserId = participantId || 'USER-DEMO-01';
+  const tradeValueRupees = Number(((priceTicks / 100) * quantity).toFixed(2));
+
+  // Wallet Validation: Ensure user has sufficient funds for BUY orders
+  if (side === 'BUY') {
+    const userBal = multiDb.getBalances(activeUserId);
+    if (userBal.inr < tradeValueRupees) {
+      return res.status(400).json({
+        success: false,
+        error: `Insufficient wallet balance (Available: ₹${userBal.inr.toLocaleString('en-IN')}, Required: ₹${tradeValueRupees.toLocaleString('en-IN')}). Please add funds to wallet.`
+      });
+    }
+  }
+
+  // Buyer Volume Price Appreciation: When buyers buy, increase stock value based on demand
+  let updatedStockInfo = dynamicStockPrices[targetSymbol];
+  if (!updatedStockInfo) {
+    updatedStockInfo = { symbol: targetSymbol, price: priceTicks / 100, change: 0, changePercent: 0, buyersCount: 0 };
+    dynamicStockPrices[targetSymbol] = updatedStockInfo;
+  }
+  if (side === 'BUY') {
+    updatedStockInfo.buyersCount += 1;
+    // Price impact: scaled by quantity purchased
+    const impactPercent = Math.min(2.5, Math.max(0.20, (quantity / 50) * 0.30));
+    const priceDelta = Number((updatedStockInfo.price * (impactPercent / 100)).toFixed(2));
+    updatedStockInfo.price = Number((updatedStockInfo.price + priceDelta).toFixed(2));
+    updatedStockInfo.change = Number((updatedStockInfo.change + priceDelta).toFixed(2));
+    const previousClose = updatedStockInfo.price - updatedStockInfo.change;
+    updatedStockInfo.changePercent = previousClose > 0 ? Number(((updatedStockInfo.change / previousClose) * 100).toFixed(2)) : 0;
+    dynamicStockPrices[targetSymbol] = updatedStockInfo;
+  }
 
   // Support non-DEMO Indian equity symbols (RELIANCE, TCS, INFY, etc.) seamlessly
   if (targetSymbol !== 'DEMO') {
-    const tradeValueRupees = Number(((priceTicks / 100) * quantity).toFixed(2));
-    const balUpdate = await multiDb.deductTradeFunds(participantId || 'USER-DEMO-01', side, tradeValueRupees);
+    const balUpdate = await multiDb.deductTradeFunds(activeUserId, side, tradeValueRupees);
+    if (side === 'BUY') {
+      await persistence.deductBalance(activeUserId, tradeValueRupees);
+    } else {
+      await persistence.creditBalance(activeUserId, tradeValueRupees);
+    }
+
     const seq = engine.currentSequence() + 1;
     const finalOrderId = orderId || `ORD-${Date.now()}`;
 
     const executedOrder = {
       orderId: finalOrderId,
       requestId,
-      participantId: participantId || 'USER-DEMO-01',
+      participantId: activeUserId,
       symbol: targetSymbol,
       side,
       priceTicks,
@@ -170,7 +218,8 @@ app.post('/api/orders', async (req: Request, res: Response) => {
       generatedTrades: [executedTrade],
       breakerTriggered: false,
       matchingLatencyMicros: 2.15,
-      updatedBalance: balUpdate.newBalance
+      updatedBalance: balUpdate.newBalance,
+      updatedStock: dynamicStockPrices[targetSymbol]
     };
 
     persistence.enqueue(seq, 'ORDER_ACCEPTED', resPayload);
@@ -191,7 +240,7 @@ app.post('/api/orders', async (req: Request, res: Response) => {
   const result = engine.submitOrder(
     orderId,
     requestId,
-    participantId,
+    activeUserId,
     'DEMO',
     side,
     priceTicks,
@@ -209,8 +258,12 @@ app.post('/api/orders', async (req: Request, res: Response) => {
   multiDb.enqueue(result.sequenceId, 'ORDER_ACCEPTED', result, matchingLatencyMicros);
 
   // Atomic Balance Adjustment: Deduct margin on BUY, credit on SELL
-  const tradeValueRupees = Number(((priceTicks / 100) * quantity).toFixed(2));
-  const balUpdate = await multiDb.deductTradeFunds(participantId || 'USER-DEMO-01', side, tradeValueRupees);
+  const balUpdate = await multiDb.deductTradeFunds(activeUserId, side, tradeValueRupees);
+  if (side === 'BUY') {
+    await persistence.deductBalance(activeUserId, tradeValueRupees);
+  } else {
+    await persistence.creditBalance(activeUserId, tradeValueRupees);
+  }
 
   // Broadcast updates over WebSocket
   broadcast({
@@ -223,13 +276,15 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     breaker: engine.getBreakerStatus(),
     metrics: engine.getMetrics(),
     matchingLatencyMicros,
-    updatedBalance: balUpdate.newBalance
+    updatedBalance: balUpdate.newBalance,
+    updatedStock: dynamicStockPrices['DEMO']
   });
 
   return res.status(200).json({
     ...result,
     matchingLatencyMicros,
-    updatedBalance: balUpdate.newBalance
+    updatedBalance: balUpdate.newBalance,
+    updatedStock: dynamicStockPrices['DEMO']
   });
 });
 
@@ -474,6 +529,60 @@ app.post('/api/wallet/withdraw', async (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
   return res.json(result);
+});
+
+// 11b. Popular Bonds: Invest Capital & Debit Wallet
+app.post('/api/bonds/invest', async (req: Request, res: Response) => {
+  const { userId, bondId, issuer, amount, tenureYears } = req.body;
+  if (!amount || Number(amount) <= 0) {
+    return res.status(400).json({ success: false, error: 'Investment amount must be strictly positive' });
+  }
+
+  const activeUserId = userId || 'USER-DEMO-01';
+  const investAmt = Number(amount);
+
+  const result = await multiDb.investInBond(
+    activeUserId,
+    bondId || 'BOND-01',
+    issuer || 'High Yield Corporate Bond',
+    investAmt,
+    Number(tenureYears || 3)
+  );
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  // Also deduct in PostgreSQL balances ledger
+  await persistence.deductBalance(activeUserId, investAmt);
+
+  // Broadcast wallet and order update
+  broadcast({
+    type: 'BOND_INVESTED',
+    userId: activeUserId,
+    bondId,
+    issuer,
+    amountInvested: investAmt,
+    newBalance: result.newBalance,
+    txnId: result.txnId
+  });
+
+  return res.json({
+    success: true,
+    txnId: result.txnId,
+    newBalance: result.newBalance,
+    amountInvested: investAmt,
+    issuer: issuer || 'Corporate Bond Issue',
+    message: `Successfully allocated ₹${investAmt.toLocaleString('en-IN')} to ${issuer || 'Bond'}!`
+  });
+});
+
+// 11c. Live Dynamic Stock Prices (Influenced by Real Buyer Demand)
+app.get('/api/stocks/prices', (req: Request, res: Response) => {
+  return res.json({
+    success: true,
+    stocks: dynamicStockPrices
+  });
 });
 
 // 12. Authenticated Admin Database Verification Dashboard

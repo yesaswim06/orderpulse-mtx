@@ -69,7 +69,7 @@ export const HomePage: React.FC = () => {
                 to="/signup"
                 className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white font-bold text-xs shadow-sm hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Open Account (₹10,00,000 Included)</span>
+                <span>Open Free Demat Account</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             )}

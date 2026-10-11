@@ -67,14 +67,14 @@ export const SignupPage: React.FC = () => {
       // Fallback
     }
 
-    // Client fallback
+    // Client fallback with strict ZERO initial balance
     const newUser = {
       userId: `USER-${Date.now().toString(36).toUpperCase()}`,
       name: name.trim(),
       email: email.trim(),
       role: 'TRADER',
       kycStatus: 'VERIFIED',
-      balance: 1000000
+      balance: 0.00
     };
     login(newUser);
     setLoading(false);
@@ -116,7 +116,7 @@ export const SignupPage: React.FC = () => {
               Open Trading Account
             </h1>
             <p className="text-xs text-[#7C7E8C] dark:text-neutral-400">
-              Instant activation with ₹10,00,000 simulated trading margin
+              Instant activation with ₹0.00 wallet balance • Deposit funds anytime
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export const SignupPage: React.FC = () => {
           {success && (
             <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/20 text-[#00B386] text-xs font-medium flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Account activated with ₹10,00,000 credit! Opening Dashboard...</span>
+              <span>Account activated! Opening Dashboard...</span>
             </div>
           )}
 
@@ -207,11 +207,11 @@ export const SignupPage: React.FC = () => {
 
             <div className="p-3 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-[11px] text-[#7C7E8C] space-y-1">
               <div className="font-bold text-slate-700 dark:text-neutral-300 flex items-center justify-between">
-                <span>Account Benefits</span>
-                <span className="text-[#00B386] font-mono">₹10,00,000</span>
+                <span>Initial Wallet Balance</span>
+                <span className="text-[#00B386] font-mono">₹0.00</span>
               </div>
-              <div>• Free virtual trading capital credited automatically.</div>
-              <div>• Instant access to C++20 FIFO Continuous Auction Matching.</div>
+              <div>• Deposit capital anytime via instant UPI, Netbanking, or Debit Card.</div>
+              <div>• Real-time C++20 FIFO Continuous Auction Matching engine.</div>
             </div>
 
             <button
@@ -219,7 +219,7 @@ export const SignupPage: React.FC = () => {
               disabled={loading || success}
               className="w-full py-3 rounded-full bg-[#00B386] hover:bg-[#009e75] text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
             >
-              <span>{loading ? 'Activating Account...' : 'Create Account & Claim ₹10,00,000'}</span>
+              <span>{loading ? 'Activating Account...' : 'Open Free Demat Account'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

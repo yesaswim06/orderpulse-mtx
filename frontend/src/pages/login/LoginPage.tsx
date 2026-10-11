@@ -179,7 +179,7 @@ export const LoginPage: React.FC = () => {
               Sign In to OrderPulse
             </h1>
             <p className="text-xs text-[#7C7E8C] dark:text-neutral-400">
-              Real-time FIFO order matching with ₹10,00,000 simulated balance
+              Real-time FIFO order matching with instant wallet settlement
             </p>
           </div>
 

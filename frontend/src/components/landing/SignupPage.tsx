@@ -83,7 +83,7 @@ export const SignupPage: React.FC = () => {
           Create Trading & Demat Account
         </h2>
         <p className="text-xs text-[#7C7E8C]">
-          Instant KYC verification with ₹10,00,000 simulated trading margin
+          Instant KYC verification with zero opening fees • Deposit funds anytime
         </p>
       </div>
 
@@ -210,7 +210,7 @@ export const SignupPage: React.FC = () => {
             <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/20 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#00B386] shrink-0" />
               <span className="text-[11px] text-[#7C7E8C] dark:text-neutral-400 font-mono">
-                Initial Account Credit: ₹10,00,000 Virtual Trading Capital
+                Initial Account Balance: ₹0.00 • Instant UPI Fund Deposits
               </span>
             </div>
 

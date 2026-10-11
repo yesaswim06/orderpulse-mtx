@@ -628,7 +628,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
     return null;
   }
 
-  public async registerUser(userId: string, name: string, email: string, role = 'TRADER') {
+  public async registerUser(userId: string, name: string, email: string, role = 'TRADER', initialBalance = 0.00) {
     if (this.isConnectedToPostgres && this.pool) {
       try {
         await this.pool.query(
@@ -639,9 +639,9 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
         );
         await this.pool.query(
           `INSERT INTO balances (account_id, user_id, currency, available, locked, is_demo)
-           VALUES ($1, $2, 'INR', 1000000.00, 0.00, 1)
+           VALUES ($1, $2, 'INR', $3, 0.00, 1)
            ON CONFLICT (account_id) DO NOTHING`,
-          [`ACC-INR-${userId}`, userId]
+          [`ACC-INR-${userId}`, userId, initialBalance]
         );
         return { success: true };
       } catch (err: any) {
@@ -649,6 +649,36 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
       }
     }
     return { success: true };
+  }
+
+  public async deductBalance(userId: string, amount: number) {
+    if (this.isConnectedToPostgres && this.pool) {
+      try {
+        await this.pool.query(
+          `UPDATE balances 
+           SET available = GREATEST(0, available - $1), updated_at = NOW() 
+           WHERE user_id = $2 AND currency = 'INR'`,
+          [amount, userId]
+        );
+      } catch (err: any) {
+        console.warn('[Postgres deductBalance error]:', err.message);
+      }
+    }
+  }
+
+  public async creditBalance(userId: string, amount: number) {
+    if (this.isConnectedToPostgres && this.pool) {
+      try {
+        await this.pool.query(
+          `UPDATE balances 
+           SET available = available + $1, updated_at = NOW() 
+           WHERE user_id = $2 AND currency = 'INR'`,
+          [amount, userId]
+        );
+      } catch (err: any) {
+        console.warn('[Postgres creditBalance error]:', err.message);
+      }
+    }
   }
 
   public getLocalOrders() { return this.localOrdersTable; }

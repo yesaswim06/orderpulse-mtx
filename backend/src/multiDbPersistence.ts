@@ -768,13 +768,14 @@ export class MultiDbPersistenceWorker {
     side: 'BUY' | 'SELL',
     totalAmountRupees: number
   ): Promise<{ success: boolean; newBalance: number }> {
-    let bal = this.localBalancesTable.find(b => (b.user_id === userId || b.user_id === 'USER-DEMO-01') && b.currency === 'INR');
+    const targetId = userId || 'USER-DEMO-01';
+    let bal = this.localBalancesTable.find(b => b.user_id === targetId && b.currency === 'INR');
     if (!bal) {
       bal = {
-        account_id: `ACC-INR-${userId}`,
-        user_id: userId,
+        account_id: `ACC-INR-${targetId}`,
+        user_id: targetId,
         currency: 'INR',
-        available: 1000000.00,
+        available: targetId === 'USER-DEMO-01' ? 1000000.00 : 0.00,
         locked: 0.00,
         is_demo: 1,
         updated_at: new Date().toISOString()
@@ -789,20 +790,46 @@ export class MultiDbPersistenceWorker {
     }
     bal.updated_at = new Date().toISOString();
 
-    // MySQL atomic ledger update if connected
-    if (this.isConnectedToMysql && this.mysqlPool) {
-      try {
-        const sign = side === 'BUY' ? '-' : '+';
-        await this.mysqlPool.query(
-          `UPDATE balances SET available = available ${sign} ? WHERE currency = 'INR' LIMIT 1`,
-          [totalAmountRupees]
-        );
-      } catch (e: any) {
-        console.warn('[MySQL Deduct Error]', e.message);
-      }
+    return { success: true, newBalance: bal.available };
+  }
+
+  public async investInBond(
+    userId: string,
+    bondId: string,
+    issuer: string,
+    amount: number,
+    tenureYears: number
+  ): Promise<{ success: boolean; newBalance: number; txnId: string; error?: string }> {
+    const targetId = userId || 'USER-DEMO-01';
+    let bal = this.localBalancesTable.find(b => b.user_id === targetId && b.currency === 'INR');
+    if (!bal || bal.available < amount) {
+      return {
+        success: false,
+        newBalance: bal?.available || 0,
+        txnId: '',
+        error: `Insufficient balance (Available: ₹${(bal?.available || 0).toLocaleString('en-IN')}). Please add funds to wallet.`
+      };
     }
 
-    return { success: true, newBalance: bal.available };
+    bal.available = Math.max(0, Number((bal.available - amount).toFixed(2)));
+    bal.updated_at = new Date().toISOString();
+
+    const txnId = `TXN-BOND-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    if (this.isConnectedToMongo && this.mongoDb) {
+      this.mongoDb.collection('wallet_audit_log').insertOne({
+        txn_id: txnId,
+        user_id: targetId,
+        type: 'BOND_INVESTMENT',
+        bond_id: bondId,
+        issuer,
+        amount,
+        tenure_years: tenureYears,
+        created_at: new Date()
+      }).catch(() => {});
+    }
+
+    return { success: true, newBalance: bal.available, txnId };
   }
 
   // --------------------------------------------------------------------------
@@ -983,8 +1010,9 @@ export class MultiDbPersistenceWorker {
   }
 
   public getBalances(userId: string) {
-    const inr = this.localBalancesTable.find(b => b.user_id === userId && b.currency === 'INR')?.available || 1000000;
-    const demo = this.localBalancesTable.find(b => b.user_id === userId && b.currency === 'DEMO')?.available || 5000;
+    const bal = this.localBalancesTable.find(b => b.user_id === userId && b.currency === 'INR');
+    const inr = bal !== undefined ? bal.available : (userId === 'USER-DEMO-01' ? 1000000.00 : 0.00);
+    const demo = this.localBalancesTable.find(b => b.user_id === userId && b.currency === 'DEMO')?.available || 0;
     return { inr, demo, userId };
   }
 
@@ -995,7 +1023,7 @@ export class MultiDbPersistenceWorker {
     ) || null;
   }
 
-  public async registerUser(name: string, email: string, role = 'TRADER') {
+  public async registerUser(name: string, email: string, role = 'TRADER', initialBalance = 0.00) {
     const existing = this.findUser(email);
     if (existing) {
       return { success: true, user: existing, alreadyExisted: true };
@@ -1014,13 +1042,13 @@ export class MultiDbPersistenceWorker {
 
     this.localUsersTable.unshift(newUser);
 
-    // Seed initial ₹10,00,000 balance in localBalancesTable
+    // Initial balance for new registered user: 0.00 (users must deposit real/simulated funds)
     this.localBalancesTable.unshift({
       account_id: `ACC-INR-${userId}`,
       user_id: userId,
       name,
       currency: 'INR',
-      available: 1000000.00,
+      available: initialBalance,
       locked: 0.00,
       is_demo: 1,
       updated_at: new Date().toISOString()
@@ -1035,7 +1063,7 @@ export class MultiDbPersistenceWorker {
           name,
           email,
           role,
-          initial_credit_rupees: 1000000.00,
+          initial_credit_rupees: initialBalance,
           created_at: new Date()
         });
       } catch (err: any) {
